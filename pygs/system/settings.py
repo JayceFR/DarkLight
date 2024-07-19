@@ -29,7 +29,7 @@ class Settings():
         "right" : [pygame.K_RIGHT, pygame.K_d],
         "up" : [pygame.K_UP, pygame.K_w],
         "down" : [pygame.K_DOWN, pygame.K_s],
-        "jump" : [pygame.K_SPACE, pygame.K_UP, pygame.K_w],
+        "jump" : [pygame.K_SPACE],
         "dash" : [pygame.K_e, pygame.K_l],
         "settings": [pygame.K_ESCAPE],
         "select" : [pygame.K_RETURN],

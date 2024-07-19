@@ -1,8 +1,19 @@
-import pygame, random
+import pygame
 from pygame.locals import *
 import pygs as pg
 
 pygame.init()
+
+
+'''
+TODO 
+The Assets for both characters
+Make the dash in all directions
+Enemies can shoot projectile to the player
+Projectile collision and movement
+Hyde's attack 
+Map 
+'''
 
 class Game():
   def __init__(self):
