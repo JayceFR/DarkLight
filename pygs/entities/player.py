@@ -10,9 +10,27 @@ class Player(PhysicsEntity):
         self.dashes = 1
         self.wall_slide = False
         self.dashing = [0,0]
+        self.max_speed = [5, 2.5]
         self.speed = [3,2.5]
+        self.orig_speed = [3,2.5]
+        self.last_time = 0
+        self.time_update = 0
+        self.acceleration = 0.05
     
     def update(self, tilemap, movement = (0,0), dt = 1):
+        if movement[0] > self.last_movement[0]:
+            self.velocity[0] -= 0.4
+            self.speed[0] = self.orig_speed[0]
+        if movement[0] < self.last_movement[0]:
+            self.velocity[0] += 0.4
+            self.speed[0] = self.orig_speed[0]
+        #acceleration
+        if movement[0] != 0:
+            if self.acceleration > 0:
+                self.speed[0] = min(self.speed[0] + self.acceleration, self.max_speed[0])
+            else:
+                self.speed[0] = max(self.speed[0] + self.acceleration, self.orig_speed[0])
+
         super().update(tilemap, movement=movement, dt=dt)
         self.air_time += 1
 
@@ -59,13 +77,14 @@ class Player(PhysicsEntity):
         if abs(self.dashing[0]) > 30:
             self.velocity[0] = abs(self.dashing[0]) / self.dashing[0] * 3
             if abs(self.dashing[0]) == 31:
-                self.velocity[0] *= 0.1
+                self.velocity[0] *= 0.5
             pvel = [abs(self.dashing[0])/ self.dashing[0] * random.random() * 3, 0]
             self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
         if abs(self.dashing[1]) > 30:
             self.velocity[1] = abs(self.dashing[1]) / self.dashing[1] * 3
             if abs(self.dashing[1]) == 31:
-                self.velocity[1] *= 0.1
+                self.velocity[1] *= 0.6
+                # self.velocity[1] = 0.5
             pvel = [abs(self.dashing[1])/ self.dashing[1] * random.random() * 3, 0]
             self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
         if self.velocity[0] > 0:
@@ -73,8 +92,10 @@ class Player(PhysicsEntity):
         else:
             self.velocity[0] = min(self.velocity[0] + 0.1, 0)
         
+        if self.game.hud.get_controls()["down"]:
+            self.velocity[1] += 0.1
+        
         if self.dashing[1]:
-            print("I am dashing vertically")
             if self.velocity[1] > 0:
                 self.velocity[1] = max(self.velocity[1] - 0.1, 0)
             else:

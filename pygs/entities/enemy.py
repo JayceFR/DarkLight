@@ -1,5 +1,6 @@
 from .entity import PhysicsEntity
 import random
+from pygs.utils.game_math import *
 
 class Enemy(PhysicsEntity):
   def __init__(self, game, pos, size):
@@ -26,3 +27,17 @@ class Enemy(PhysicsEntity):
       self.set_action('run')
     else:
       self.set_action('idle')
+  
+class EnemyManager():
+  def __init__(self, game, locs, size) -> None:
+    self.game = game
+    self.enemies = []
+    for loc in locs:
+      self.enemies.append(Enemy(game, loc, size))
+  
+  def update(self, tilemap, display, scroll, dt):
+    for enemy in self.enemies:
+      dist_to_player = distance_between((enemy[0], enemy[1]), (self.game.player[0], self.game.player[1]))
+      #if ditance is less than 40 or something then start shooting. 
+      enemy.update(tilemap, (0,0), dt)
+      enemy.render(display, offset=scroll)

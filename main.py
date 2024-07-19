@@ -33,7 +33,7 @@ class Game():
     self.movement = [False, False]
 
     self.assets = {
-      'player' : pg.load_img('entities/player/player.png', scale=0.8),
+      'player' : pg.load_img('entities/player/BEAST.png', scale=0.8),
       'grass' : pg.load_imgs('tiles/grass', scale=1),
       'boomerang' : pg.load_img('entities/boomerang/0.png', scale=0.9),
       'decor': pg.load_imgs('tiles/decor', scale=1, color_key=(255,255,255), args={'tree3.png':[1.5,None], 'tree4.png':[1.5,None]}),
@@ -44,9 +44,12 @@ class Game():
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
       'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle'), img_dur=15),
       'enemy/run': pg.Animation([pg.load_img('entities/enemy/player3.png', scale=1, color_key=(255,255,255)),],),
-      'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=0.8), img_dur=10),
-      'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=0.8), img_dur=6),
-      'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=0.8, color_key=(0,0,0))),
+      # 'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=0.8), img_dur=10),
+      # 'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=0.8), img_dur=6),
+      # 'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=0.8, color_key=(0,0,0))),
+      'player/idle': pg.Animation([pg.load_img('entities/player/BEAST.png', scale=0.8, color_key=(255,255,255)), ]),
+      'player/run': pg.Animation([pg.load_img('entities/player/BEAST.png', scale=0.8, color_key=(255,255,255)), ]),
+      'player/jump': pg.Animation([pg.load_img('entities/player/BEAST.png', scale=0.8 ,color_key=(255,255,255)), ]),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
     }
 
@@ -87,7 +90,7 @@ class Game():
     self.citizens = []
     self.water_pos = []
     self.fire_pos = []
-    self.enemies = []
+    self.enemy_locs = []
 
     for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3)]):
       if spawner['variant'] == 0:
@@ -97,7 +100,7 @@ class Game():
       elif spawner['variant'] == 2:
         self.water_pos.append(spawner['pos'])
       elif spawner['variant'] == 3:
-        self.enemies.append(pg.entities.Enemy(self, spawner['pos'], (12,29)))
+        self.enemy_locs.append(spawner['pos'])
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -129,6 +132,7 @@ class Game():
     self.leaf = pg.ui.LeafManager(self.display.get_width(), self.display.get_height(), leaf_img )
     
     self.particles = []
+    self.enemy = pg.entities.EnemyManager(self, self.enemy_locs, (12,29))
 
     self.true_scroll = [0,0]
     self.full_screen = False
@@ -176,12 +180,8 @@ class Game():
       for citizen in self.citizens:
         citizen.update(self.tilemap, (0,0), self.dt)
         citizen.render(self.display, offset=self.scroll)
-
-      for enemy in self.enemies:
-        dist_to_player = pg.distance_between((enemy[0], enemy[1]), (self.player[0], self.player[1]))
-        #if ditance is less than 40 or something then start shooting. 
-        enemy.update(self.tilemap, (0,0), self.dt)
-        enemy.render(self.display, offset=self.scroll)
+      
+      self.enemy.update(self.tilemap, self.display, self.scroll, self.dt)
 
       if self.settings_window:
         self.settings.render(self.ui_display, time)
