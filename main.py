@@ -8,7 +8,6 @@ pygame.init()
 '''
 TODO 
 The Assets for both characters
-Make the dash in all directions
 Enemies can shoot projectile to the player
 Projectile collision and movement
 Hyde's attack 
@@ -43,6 +42,8 @@ class Game():
       'flower': pg.load_imgs('tiles/flower', (255,255,255)),
       'citizen/idle' : pg.Animation(pg.load_imgs('entities/citizen/idle'), img_dur=15),
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
+      'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle'), img_dur=15),
+      'enemy/run': pg.Animation([pg.load_img('entities/enemy/player3.png', scale=1, color_key=(255,255,255)),],),
       'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=0.8), img_dur=10),
       'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=0.8), img_dur=6),
       'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=0.8, color_key=(0,0,0))),
@@ -86,14 +87,17 @@ class Game():
     self.citizens = []
     self.water_pos = []
     self.fire_pos = []
+    self.enemies = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
         self.citizens.append(pg.entities.Citizen(self, spawner['pos'], (12,29)))
       elif spawner['variant'] == 2:
         self.water_pos.append(spawner['pos'])
+      elif spawner['variant'] == 3:
+        self.enemies.append(pg.entities.Enemy(self, spawner['pos'], (12,29)))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -172,6 +176,12 @@ class Game():
       for citizen in self.citizens:
         citizen.update(self.tilemap, (0,0), self.dt)
         citizen.render(self.display, offset=self.scroll)
+
+      for enemy in self.enemies:
+        dist_to_player = pg.distance_between((enemy[0], enemy[1]), (self.player[0], self.player[1]))
+        #if ditance is less than 40 or something then start shooting. 
+        enemy.update(self.tilemap, (0,0), self.dt)
+        enemy.render(self.display, offset=self.scroll)
 
       if self.settings_window:
         self.settings.render(self.ui_display, time)

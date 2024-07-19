@@ -8,6 +8,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from pygs.utils.images import load_imgs
 from pygs.ui.hud import Hud
 from pygs.map.map import TileMap
+from pygs.system.settings import Settings
 
 RENDER_SCALE = 2.0
 
@@ -51,6 +52,8 @@ class Editor():
 
     self.ongrid = True
     self.mouse_pos = []
+
+    self.settings = Settings(None, self)
 
   def draw_text(self, text, font, text_col, x, y, display):
     img = font.render(text, True, text_col)
@@ -162,7 +165,7 @@ class Editor():
           else:
             pygame.draw.ellipse(self.display, (100,150,100), pygame.rect.Rect(7,20*x + 40,10,10))
 
-      self.hud.events()
+      self.hud.events(self.settings.controls_keyboard)
       controls = self.hud.get_controls()
       self.movement = [False, False, False, False]
 

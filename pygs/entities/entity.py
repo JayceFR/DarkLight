@@ -14,6 +14,9 @@ class PhysicsEntity:
         self.last_movement = [0,0]
         self.speed = [1,1]
         self.set_action('idle')
+
+    def __getitem__(self, item):
+        return self.pos[item]
     
     def rect(self):
         return pygame.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
