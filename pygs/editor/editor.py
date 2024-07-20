@@ -82,8 +82,8 @@ class Editor():
       self.clock.tick(60)
       self.display.fill((0,0,0))
 
-      self.scroll[0] += (self.movement[1] - self.movement[0]) * 2
-      self.scroll[1] += (self.movement[3] - self.movement[2]) * 2
+      self.scroll[0] += (self.movement[1] - self.movement[0]) * 5
+      self.scroll[1] += (self.movement[3] - self.movement[2]) * 5
 
       render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
       self.tilemap.render(self.display, render_scroll)

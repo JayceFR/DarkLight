@@ -46,6 +46,7 @@ class Game():
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
       'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle', scale=0.8), img_dur=15),
       'enemy/run': pg.Animation(pg.load_imgs('entities/enemy/run', scale=0.8), img_dur=10),
+      'flow' : pg.load_img('ui/flow.png'),
       'pistol' : pg.load_img('entities/enemy/pistol.png', (0,0,0)),
       'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=1, color_key=(255,255,255)), img_dur=10),
       'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=1, color_key=(255,255,255)), img_dur=6),
@@ -92,10 +93,11 @@ class Game():
     self.water_pos = []
     self.fire_pos = []
     self.enemy_locs = []
+    self.flows = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -104,6 +106,8 @@ class Game():
         self.water_pos.append(spawner['pos'])
       elif spawner['variant'] == 3:
         self.enemy_locs.append(spawner['pos'])
+      elif spawner['variant'] == 4:
+        self.flows.append(pg.entities.Flow(spawner['pos'], (self.assets['flow'].get_width(), self.assets['flow'].get_height()), self))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -181,6 +185,18 @@ class Game():
         citizen.render(self.display, offset=self.scroll)
       
       self.enemy.update(self.tilemap, self.display, self.scroll, self.dt)
+
+      for flow in self.flows.copy():
+        flow.render(self.display, self.scroll)
+        if flow.rect.colliderect(self.player.rect()):
+          self.player.pos[0] = flow.rect.center[0] - 9
+          self.player.pos[1] = flow.rect.center[1] - 9
+          #give them an extra dash if they don't have one
+          self.player.dashes = 1
+          self.player.velocity[1] = 0
+          #if player hits remove flow
+          if self.player.hit:
+            self.flows.remove(flow)
 
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
