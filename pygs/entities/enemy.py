@@ -1,6 +1,8 @@
 from .entity import PhysicsEntity
 import random, pygame, math
 from pygs.utils.game_math import *
+from pygs.ui.spark import Spark
+from pygs.ui.particle import Particle
 
 class Enemy(PhysicsEntity):
   def __init__(self, game, pos, size, pistol_img):
@@ -66,12 +68,15 @@ class Projectile(PhysicsEntity):
     super().__init__(game, e_type, pos, size, False)
     self.img = pygame.transform.rotate(img, math.degrees(angle_of_rot))
     self.alive = True
+    self.arot = angle_of_rot
     self.velocity = init_velocity
   
   def update(self, tilemap, movement=(0,0), dt=1):
     super().update(tilemap, movement, dt, gravity=False)
     if self.collisions["left"] or self.collisions["right"] or self.collisions["up"] or self.collisions["down"]:
       self.alive = False
+      for x in range(4):
+        self.game.sparks.append(Spark((self.pos[0], self.pos[1]),random.random() + self.arot - math.pi, 2 + random.random()))
   
   def render(self, surf, offset=(0,0)):
     surf.blit(self.img, (self.pos[0] - offset[0], self.pos[1] - offset[1]))
@@ -108,6 +113,8 @@ class EnemyManager():
           nvec[0] = nvec[0] + random.choice(xrange) * 20
           nvec[1] = nvec[1] + random.choice(yrange) * 20
           self.projectiles.append(Projectile(self.game, 'bullet', (enemy[0], enemy[1]), (self.game.assets['bullet'].get_width(), self.game.assets['bullet'].get_height()), self.game.assets['bullet'], nvec, enemy.target_angle))
+          for x in range(4):
+            self.game.sparks.append(Spark((enemy[0], enemy[1]),random.random() + enemy.target_angle - math.pi, 2 + random.random()))
     
     for projectile in self.projectiles.copy():
       if not projectile.alive:
@@ -115,5 +122,11 @@ class EnemyManager():
       else:
         projectile.update(tilemap, (0,0), dt)
         projectile.render(display, scroll)
-        if projectile.rect().colliderect(self.game.player.rect()):
+        if abs(self.game.player.dashing[1]) < 30 and abs(self.game.player.dashing[0]) < 30 and projectile.rect().colliderect(self.game.player.rect()):
           self.projectiles.remove(projectile)
+          self.game.screenshake = max(16, self.game.screenshake)
+          for x in range(30):
+            angle = random.random() * math.pi * 2
+            speed = random.random() * 5
+            self.game.sparks.append(Spark(self.game.player.rect().center, angle, 2 + random.random()))
+            self.game.particles.append(Particle(self.game, 'particle', self.game.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5 ], frame=random.randint(0,7)))

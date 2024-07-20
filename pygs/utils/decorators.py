@@ -1,6 +1,6 @@
 from pygs.ui.hud import Hud
 from pygs.shader.shader import Shader
-import pygame
+import pygame, random
 import time
 from pygame.locals import *
 
@@ -32,7 +32,8 @@ def pygs(function):
         surf = pygame.transform.scale(surf, pygame.display.get_window_size())
       else:
         surf = pygame.transform.scale(surf, pygame.display.get_window_size())
-      self.screen.blit(surf, (0,0))
+      screen_shake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2 )
+      self.screen.blit(surf, screen_shake_offset)
       uniform = {'noise_tex1': self.noise_img1, 'noise_tex2' : self.noise_img2, 'tex': self.screen, 'ui_tex' : self.ui_display}
       variables = {'itime' : time.time() - start_time, 'cam_scroll': tuple(list(self.scroll)), 'darkness': self.darkness}
       self.shader_obj.draw(uniform, variables)

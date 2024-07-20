@@ -91,6 +91,8 @@ class Game():
     self.fire_pos = []
     self.enemy_locs = []
 
+    self.sparks = []
+
     for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
@@ -132,6 +134,7 @@ class Game():
     
     self.particles = []
     self.enemy = pg.entities.EnemyManager(self, self.enemy_locs, (12,29))
+    self.screenshake = 0
 
     self.true_scroll = [0,0]
     self.full_screen = False
@@ -149,6 +152,8 @@ class Game():
       # print(self.clock.get_fps())
       self.ui_display.fill((0,0,0,0))
       self.display.fill((2,2,2))
+
+      self.screenshake = max(0, self.screenshake - 1)
 
       controls = self.hud.get_controls()
       self.movement = [False, False]
@@ -192,6 +197,13 @@ class Game():
         self.display.blit(self.lamp_glow_img, (pos[0] - self.scroll[0] - 17, pos[1] - self.scroll[1] - 10), special_flags=BLEND_RGBA_ADD)
 
       self.gust.update(time)
+
+      for spark in self.sparks.copy():
+        kill = spark.update()
+        spark.render(self.display, self.scroll, self.dt)
+        if kill:
+          self.sparks.remove(spark)
+
       self.fireflies.recursive_call(time, self.display, self.scroll, self.dt)
       self.leaf.recursive_call(time, self.display, self.scroll, self.gust.wind(), dt=self.dt)
 
