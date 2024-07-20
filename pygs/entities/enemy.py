@@ -50,7 +50,7 @@ class Enemy(PhysicsEntity):
     else:
       self.flip = True
     
-    if self.angle > 90 or self.angle < -90:
+    if math.degrees(self.angle) > 90 or math.degrees(self.angle) < -90:
       self.pistol_flip = True
     else:
       self.pistol_flip = False
