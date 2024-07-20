@@ -59,7 +59,6 @@ class Hud():
                     if self.obj.__class__.__name__ == "Game" and not self.obj.settings_window:
                         if self.obj.player.jumps:
                             self.obj.player.jump()
-                        print(pygame.display.get_window_size())
                     self.return_dict["jump"] = True
                 if event.key in key_controls["dash"]:
                     if self.obj.__class__.__name__ == "Game":

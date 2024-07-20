@@ -83,7 +83,7 @@ class Game():
 
     flower_objs = self.tilemap.get_objs('flower')
     self.flower = pg.entities.Flowers(flower_objs, self.assets, self)
-    self.gust = pg.entities.Gust()
+    self.gust = pg.entities.Gust(self)
 
     self.scroll = []
 
@@ -170,7 +170,7 @@ class Game():
 
       self.flower.update(self.player.rect(), self.display, self.scroll, time, self.gust.wind())
 
-      self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0), self.dt)
+      self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)

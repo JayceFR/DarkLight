@@ -10,27 +10,41 @@ class Player(PhysicsEntity):
         self.dashes = 1
         self.wall_slide = False
         self.dashing = [0,0]
-        self.max_speed = [5, 2.5]
-        self.speed = [3,2.5]
+        self.max_speed = [5, 5] #left and right along x axis
+        self.orig_max_speed = [5, 5]
+        self.target_max_speed = [5, 5]
+        self.speed = [3,2.5] #just a scalar factor
         self.orig_speed = [3,2.5]
         self.last_time = 0
         self.time_update = 0
         self.acceleration = 0.05
     
-    def update(self, tilemap, movement = (0,0), dt = 1):
+    def update(self, tilemap, movement = [0,0], dt = 1, wind = 0):
         if movement[0] > self.last_movement[0]:
+            if wind in {-2, 0, 2}:
+                self.max_speed[0] = self.orig_max_speed[0]
             self.velocity[0] -= 0.4
             self.speed[0] = self.orig_speed[0]
         if movement[0] < self.last_movement[0]:
+            if wind in {-2, 0, 2}:
+                self.max_speed[1] = self.orig_max_speed[1]
             self.velocity[0] += 0.4
             self.speed[0] = self.orig_speed[0]
         #acceleration
-        if movement[0] != 0:
-            if self.acceleration > 0:
-                self.speed[0] = min(self.speed[0] + self.acceleration, self.max_speed[0])
-            else:
-                self.speed[0] = max(self.speed[0] + self.acceleration, self.orig_speed[0])
+        if movement[0] > 0:
+            self.speed[0] = min(self.speed[0] + self.acceleration, self.max_speed[1])
+        if movement[0] < 0:
+            self.speed[0] = min(self.speed[0] + self.acceleration, self.max_speed[0])
 
+            # else:
+            #     self.speed[0] = max(self.speed[0] + self.acceleration, self.orig_speed[0])
+        #wind
+        # if (movement[0] > 0 and wind > 0) or (movement[0] < 0 and wind < 0):
+        #     #push effect
+        #     self.max_speed[0] + wind
+        # if (movement[0] > 0 and wind < 0) or (movement[0])
+        print(self.max_speed, wind)
+        # self.velocity[0] += wind * 0.01       
         super().update(tilemap, movement=movement, dt=dt)
         self.air_time += 1
 
@@ -129,11 +143,11 @@ class Player(PhysicsEntity):
         if self.dashes:
             if not self.dashing[0]:
                 if self.game.hud.get_controls()["left"]:
-                    self.dashing[0] = -40
+                    self.dashing[0] = -38
                 if self.game.hud.get_controls()["right"]:
-                    self.dashing[0] = 40
+                    self.dashing[0] = 38
                 if self.game.hud.get_controls()["up"]:
-                    self.dashing[1] = -40
+                    self.dashing[1] = -38
                 if self.game.hud.get_controls()["down"]:
-                    self.dashing[1] = 40
+                    self.dashing[1] = 38
             self.dashes = max(0, self.dashes -1)
