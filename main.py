@@ -44,6 +44,7 @@ class Game():
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
       'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle'), img_dur=15),
       'enemy/run': pg.Animation([pg.load_img('entities/enemy/player3.png', scale=1, color_key=(255,255,255)),],),
+      'pistol' : pg.load_img('entities/enemy/pistol.png', (0,0,0)),
       # 'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=0.8), img_dur=10),
       # 'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=0.8), img_dur=6),
       # 'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=0.8, color_key=(0,0,0))),

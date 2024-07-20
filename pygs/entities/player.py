@@ -12,7 +12,6 @@ class Player(PhysicsEntity):
         self.dashing = [0,0]
         self.max_speed = [5, 5] #left and right along x axis
         self.orig_max_speed = [5, 5]
-        self.target_max_speed = [5, 5]
         self.speed = [3,2.5] #just a scalar factor
         self.orig_speed = [3,2.5]
         self.last_time = 0
@@ -36,14 +35,6 @@ class Player(PhysicsEntity):
         if movement[0] < 0:
             self.speed[0] = min(self.speed[0] + self.acceleration, self.max_speed[0])
 
-            # else:
-            #     self.speed[0] = max(self.speed[0] + self.acceleration, self.orig_speed[0])
-        #wind
-        # if (movement[0] > 0 and wind > 0) or (movement[0] < 0 and wind < 0):
-        #     #push effect
-        #     self.max_speed[0] + wind
-        # if (movement[0] > 0 and wind < 0) or (movement[0])
-        print(self.max_speed, wind)
         # self.velocity[0] += wind * 0.01       
         super().update(tilemap, movement=movement, dt=dt)
         self.air_time += 1

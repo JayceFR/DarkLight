@@ -31,19 +31,7 @@ class PhysicsEntity:
         
     def update(self, tilemap, movement=(0, 0), dt = 1):
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
-        
-        # try:
-        #     target_speed = movement[0] * self.speed[0]
-        #     speed_dif = target_speed - self.current_speed
-        #     if abs(target_speed) > 0.01:
-        #         acc = 0.4
-        #     else:
-        #         acc = -0.4
-        #     self.current_speed += math.pow(abs(speed_dif) * acc, 2) * movement[0]
-        # except:
-        #     pass
         frame_movement = (movement[0] + self.velocity[0] + self.momentum[0] / self.mass, movement[1] + self.velocity[1] + self.momentum[1] / self.mass)
-        # frame_movement = (self.current_speed, movement[1] + self.velocity[1] + self.momentum[1] / self.mass)        
         self.pos[0] += frame_movement[0] * self.speed[0] * dt
         entity_rect = self.rect()
         for rect in tilemap.physics_around(self.pos):
@@ -76,16 +64,7 @@ class PhysicsEntity:
         self.last_movement = movement
         
         self.velocity[1] = min(5, self.velocity[1] + 0.12)
-        
-        # if self.momentum[0] > 0:
-        #     self.momentum[0] = min(0, self.momentum[0] - 0.1)
-        # if self.momentum[0] < 0:
-        #     self.momentum[0] = min(0, self.momentum[0] + 0.1)
-        
-        # if self.momentum[1] > 0:
-        #     self.momentum[1] = min(0, self.momentum[1] - 0.1)
-        # if self.momentum[0] < 0:
-        #     self.momentum[1] = min(0, self.momentum[1] + 0.1)
+
         
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0

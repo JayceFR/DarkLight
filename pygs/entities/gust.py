@@ -22,7 +22,7 @@ class Gust:
           self.gust = 0
       else:
         self.target_gust = self.gust_choice[random.randint(0, len(self.gust_choice)-1)]
-        self.game.player.velocity[0] += self.target_gust * -0.1 
+        self.game.player.velocity[0] += self.target_gust * -0.01
         if self.target_gust * -0.1 > 0:
           self.game.player.max_speed[1] = min(self.game.player.max_speed[1] + abs(self.target_gust * -0.1), 9)
           self.game.player.max_speed[0] = self.game.player.orig_max_speed[0]
