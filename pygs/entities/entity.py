@@ -1,7 +1,7 @@
 import pygame, math
 
 class PhysicsEntity:
-    def __init__(self, game, e_type, pos, size):
+    def __init__(self, game, e_type, pos, size, gravity=True):
         self.game = game
         self.type = e_type
         self.pos = list(pos)
@@ -16,7 +16,8 @@ class PhysicsEntity:
         self.mass = 1
         self.speed = [1,1]
         self.current_speed = 0
-        self.set_action('idle')
+        if gravity:
+            self.set_action('idle')
 
     def __getitem__(self, item):
         return self.pos[item]
@@ -29,7 +30,7 @@ class PhysicsEntity:
             self.action = action
             self.animation = self.game.assets[self.type + '/'+ self.action].copy()
         
-    def update(self, tilemap, movement=(0, 0), dt = 1):
+    def update(self, tilemap, movement=(0, 0), dt = 1, gravity=True):
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
         frame_movement = (movement[0] + self.velocity[0] + self.momentum[0] / self.mass, movement[1] + self.velocity[1] + self.momentum[1] / self.mass)
         self.pos[0] += frame_movement[0] * self.speed[0] * dt
@@ -63,13 +64,15 @@ class PhysicsEntity:
 
         self.last_movement = movement
         
-        self.velocity[1] = min(5, self.velocity[1] + 0.12)
+        if gravity:
+            self.velocity[1] = min(7, self.velocity[1] + 0.2)
 
         
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0
         
-        self.animation.update()
+        if gravity:
+            self.animation.update()
         
     def render(self, surf, offset=(0, 0)):
         surf.blit(pygame.transform.flip(self.animation.img(), self.flip, False), (self.pos[0] - offset[0], self.pos[1] - offset[1]))

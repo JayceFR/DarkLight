@@ -33,24 +33,22 @@ class Game():
     self.movement = [False, False]
 
     self.assets = {
-      'player' : pg.load_img('entities/player/BEAST.png', scale=0.8),
+      'player' : pg.load_img('entities/player/random.png', scale=1),
       'grass' : pg.load_imgs('tiles/grass', scale=1),
       'boomerang' : pg.load_img('entities/boomerang/0.png', scale=0.9),
       'decor': pg.load_imgs('tiles/decor', scale=1, color_key=(255,255,255), args={'tree3.png':[1.5,None], 'tree4.png':[1.5,None]}),
       'stone': pg.load_imgs('tiles/stone', scale=1),
       'lamp': pg.load_imgs('tiles/lamp', scale=2, color_key=(255,255,255)),
       'flower': pg.load_imgs('tiles/flower', (255,255,255)),
+      'bullet': pg.load_img('entities/enemy/bullet.png', (0,0,0), 1),
       'citizen/idle' : pg.Animation(pg.load_imgs('entities/citizen/idle'), img_dur=15),
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
       'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle'), img_dur=15),
       'enemy/run': pg.Animation([pg.load_img('entities/enemy/player3.png', scale=1, color_key=(255,255,255)),],),
       'pistol' : pg.load_img('entities/enemy/pistol.png', (0,0,0)),
-      # 'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=0.8), img_dur=10),
-      # 'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=0.8), img_dur=6),
-      # 'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=0.8, color_key=(0,0,0))),
-      'player/idle': pg.Animation([pg.load_img('entities/player/BEAST.png', scale=0.8, color_key=(255,255,255)), ]),
-      'player/run': pg.Animation([pg.load_img('entities/player/BEAST.png', scale=0.8, color_key=(255,255,255)), ]),
-      'player/jump': pg.Animation([pg.load_img('entities/player/BEAST.png', scale=0.8 ,color_key=(255,255,255)), ]),
+      'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=1, color_key=(255,255,255)), img_dur=10),
+      'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=1, color_key=(255,255,255)), img_dur=6),
+      'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
     }
 
