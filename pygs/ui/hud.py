@@ -76,7 +76,11 @@ class Hud():
                         self.obj.settings.update_hover_pos((self.obj.settings.curr_hover_pos + 1) % len(self.obj.settings.resolutions))
                     self.return_dict["down"] = True
                 if event.key == pygame.K_LSHIFT:
-                    self.return_dict['ongrid'] = not self.return_dict['ongrid']
+                    if self.obj.__class__.__name__ == "Editor":
+                        self.return_dict['ongrid'] = not self.return_dict['ongrid']
+                if event.key in key_controls["attack"]:
+                    if self.obj.__class__.__name__ == "Game":
+                        self.obj.player.attack()
                 if event.key in key_controls["settings"]:
                     if self.obj.__class__.__name__ == "Game":
                         self.obj.settings_window = not self.obj.settings_window

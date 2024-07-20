@@ -17,6 +17,10 @@ class Player(PhysicsEntity):
         self.last_time = 0
         self.time_update = 0
         self.acceleration = 0.05
+        self.hit = 0  # amount, left, right, top, bottom
+        self.hit_facing_right = True
+        self.hit_facing_up = None
+        self.hit_rect = (0,0,0,0)
     
     def update(self, tilemap, movement = [0,0], dt = 1, wind = 0):
         if movement[0] > self.last_movement[0]:
@@ -58,12 +62,15 @@ class Player(PhysicsEntity):
                 self.flip = True
         
         if not self.wall_slide:
-            if self.air_time > 4:
+            if self.hit > 0:
+                self.set_action('hit')
+            elif self.air_time > 4:
                 self.set_action('jump')
             elif movement[0] != 0:
                 self.set_action('run')
             else:
                 self.set_action('idle')
+
 
         if abs(self.dashing[0]) in {40, 30} or abs(self.dashing[1]) in {40,30}:
                 for x in range(20):
@@ -97,19 +104,27 @@ class Player(PhysicsEntity):
         else:
             self.velocity[0] = min(self.velocity[0] + 0.1, 0)
         
-        if self.game.hud.get_controls()["down"]:
-            self.velocity[1] += 0.1
+        # if self.game.hud.get_controls()["down"]:
+        #     self.velocity[1] += 0.1
         
         if self.dashing[1]:
             if self.velocity[1] > 0:
-                self.velocity[1] = max(self.velocity[1] - 0.1, 0)
+                self.velocity[1] = max(self.velocity[1] - 0.05, 0)
             else:
                 self.velocity[1] = min(self.velocity[1] + 0.1, 0)
+            
+        
+        self.hit = max(0, self.hit - 0.5)
+        if self.hit:
+            self.velocity[0] = 0
+            self.velocity[1] = 0
+        # self.hit = min(self.hit + 0.1, 0)
     
     def render(self, surf, offset=(0,0)):
         if abs(self.dashing[0]) <= 30:
             super().render(surf, offset=offset)
-
+            # if self.hit > 0:
+            #     pygame.draw.rect(surf, (255,0,0), (self.hit_rect[0] - offset[0], self.hit_rect[1] - offset[1], self.hit_rect[2], self.hit_rect[3]))
     
     def jump(self):
         if self.wall_slide:
@@ -130,15 +145,35 @@ class Player(PhysicsEntity):
             self.jumps -= 1
             self.air_time = 5
     
+    def attack(self):
+        self.hit = 10
+        self.hit_facing_right = not self.flip
+        if self.flip:
+            self.hit_rect = (self.pos[0] - self.size[0] - 10, self.pos[1], self.size[0] + 20, self.size[1] )
+        else:
+            self.hit_rect = (self.pos[0] , self.pos[1] , self.size[0] + 20, self.size[1] )
+        if self.game.hud.get_controls()["up"]:
+            self.hit_rect =  (self.pos[0] , self.pos[1] - self.size[1], self.size[0] , self.size[1] + 5 )
+        elif self.game.hud.get_controls()["down"]:
+            self.hit_rect = (self.pos[0] , self.pos[1] + self.size[1] //2 , self.size[0] , self.size[1] + 5 )
+    
+    def get_hit_rect(self):
+        return pygame.rect.Rect(self.hit_rect[0], self.hit_rect[1], self.hit_rect[2], self.hit_rect[3])
+    
     def dash(self):
         if self.dashes:
             if not self.dashing[0]:
                 if self.game.hud.get_controls()["left"]:
                     self.dashing[0] = -38
+                    self.game.screenshake = max(20, self.game.screenshake)
                 if self.game.hud.get_controls()["right"]:
                     self.dashing[0] = 38
+                    self.game.screenshake = max(20, self.game.screenshake)
                 if self.game.hud.get_controls()["up"]:
                     self.dashing[1] = -38
+                    self.game.screenshake = max(20, self.game.screenshake)
                 if self.game.hud.get_controls()["down"]:
+                    print("dashing down")
                     self.dashing[1] = 38
+                    self.game.screenshake = max(20, self.game.screenshake)
             self.dashes = max(0, self.dashes -1)

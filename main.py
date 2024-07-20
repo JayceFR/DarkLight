@@ -11,6 +11,7 @@ The Assets for both characters
 Enemies can shoot projectile to the player
 Projectile collision and movement
 Hyde's attack 
+Need to remove the projectiles if they leave the screen
 Map 
 '''
 
@@ -43,12 +44,13 @@ class Game():
       'bullet': pg.load_img('entities/enemy/bullet.png', (0,0,0), 1),
       'citizen/idle' : pg.Animation(pg.load_imgs('entities/citizen/idle'), img_dur=15),
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
-      'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle'), img_dur=15),
-      'enemy/run': pg.Animation([pg.load_img('entities/enemy/player3.png', scale=1, color_key=(255,255,255)),],),
+      'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle', scale=0.8), img_dur=15),
+      'enemy/run': pg.Animation(pg.load_imgs('entities/enemy/run', scale=0.8), img_dur=10),
       'pistol' : pg.load_img('entities/enemy/pistol.png', (0,0,0)),
       'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=1, color_key=(255,255,255)), img_dur=10),
       'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=1, color_key=(255,255,255)), img_dur=6),
       'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
+      'player/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
     }
 
@@ -133,7 +135,7 @@ class Game():
     self.leaf = pg.ui.LeafManager(self.display.get_width(), self.display.get_height(), leaf_img )
     
     self.particles = []
-    self.enemy = pg.entities.EnemyManager(self, self.enemy_locs, (12,29))
+    self.enemy = pg.entities.EnemyManager(self, self.enemy_locs, (20 * 0.8,38 * 0.8))
     self.screenshake = 0
 
     self.true_scroll = [0,0]
@@ -174,6 +176,12 @@ class Game():
 
       self.flower.update(self.player.rect(), self.display, self.scroll, time, self.gust.wind())
 
+      for citizen in self.citizens:
+        citizen.update(self.tilemap, (0,0), self.dt)
+        citizen.render(self.display, offset=self.scroll)
+      
+      self.enemy.update(self.tilemap, self.display, self.scroll, self.dt)
+
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
       for particle in self.fire_particles:
@@ -181,11 +189,6 @@ class Game():
 
       self.water_manager.update(self)
 
-      for citizen in self.citizens:
-        citizen.update(self.tilemap, (0,0), self.dt)
-        citizen.render(self.display, offset=self.scroll)
-      
-      self.enemy.update(self.tilemap, self.display, self.scroll, self.dt)
 
       if self.settings_window:
         self.settings.render(self.ui_display, time)

@@ -32,6 +32,7 @@ class Settings():
         "jump" : [pygame.K_SPACE],
         "dash" : [pygame.K_e, pygame.K_l],
         "settings": [pygame.K_ESCAPE],
+        "attack" : [pygame.K_j],
         "select" : [pygame.K_RETURN],
       },
       "display" : {
