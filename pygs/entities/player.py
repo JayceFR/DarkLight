@@ -67,7 +67,13 @@ class Player(PhysicsEntity):
         
         if self.wall_slide < 20:
             if self.hit > 0:
-                self.set_action('hit')
+                if self.hit_facing_right is not None:
+                    self.set_action('hit')
+                if self.hit_facing_up is not None:
+                    if self.hit_facing_up:
+                        self.set_action('hit_up')
+                    else:
+                        self.set_action('hit_down')
             elif self.air_time > 4:
                 self.set_action('jump')
             elif movement[0] != 0:
@@ -163,14 +169,19 @@ class Player(PhysicsEntity):
     
     def attack(self):
         self.hit = 10
+        self.hit_facing_up = None
         self.hit_facing_right = not self.flip
         if self.flip:
             self.hit_rect = (self.pos[0] - self.size[0] - 10, self.pos[1], self.size[0] + 20, self.size[1] )
         else:
             self.hit_rect = (self.pos[0] , self.pos[1] , self.size[0] + 20, self.size[1] )
         if self.game.hud.get_controls()["up"]:
+            self.hit_facing_right = None
+            self.hit_facing_up = True
             self.hit_rect =  (self.pos[0] , self.pos[1] - self.size[1], self.size[0] , self.size[1] + 5 )
         elif self.game.hud.get_controls()["down"]:
+            self.hit_facing_right = None
+            self.hit_facing_up = False
             self.hit_rect = (self.pos[0] , self.pos[1] + self.size[1] //2 , self.size[0] , self.size[1] + 5 )
     
     def get_hit_rect(self):

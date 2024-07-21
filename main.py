@@ -55,6 +55,8 @@ class Game():
       'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
       'player/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
       'player/climb' : pg.Animation(pg.load_imgs('entities/player/climb', scale=1)),
+      'player/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
+      'player/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
     }
 
