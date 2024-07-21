@@ -21,6 +21,7 @@ class Player(PhysicsEntity):
         self.hit_facing_right = True
         self.hit_facing_up = None
         self.hit_rect = (0,0,0,0)
+        self.jump_buffer = 10
     
     def update(self, tilemap, movement = [0,0], dt = 1, wind = 0):
         if movement[0] > self.last_movement[0]:
@@ -47,6 +48,8 @@ class Player(PhysicsEntity):
             self.air_time = 0
             self.jumps = 2
             self.dashes = 1
+            if self.jump_buffer:
+                self.jump()
 
         self.wall_slide = False
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
@@ -118,6 +121,8 @@ class Player(PhysicsEntity):
         if self.hit:
             self.velocity[0] = 0
             self.velocity[1] = 0
+        
+        self.jump_buffer = max(0, self.jump_buffer - 1)
         # self.hit = min(self.hit + 0.1, 0)
     
     def render(self, surf, offset=(0,0)):
@@ -142,7 +147,7 @@ class Player(PhysicsEntity):
                 return True
         elif self.jumps:
             self.velocity[1] = -2.5
-            self.jumps -= 1
+            self.jumps = max(0, self.jumps -1)
             self.air_time = 5
     
     def attack(self):
