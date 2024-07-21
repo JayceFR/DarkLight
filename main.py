@@ -1,4 +1,4 @@
-import pygame
+import pygame, random, math
 from pygame.locals import *
 import pygs as pg
 
@@ -42,6 +42,8 @@ class Game():
       'lamp': pg.load_imgs('tiles/lamp', scale=2, color_key=(255,255,255)),
       'flower': pg.load_imgs('tiles/flower', (255,255,255)),
       'bullet': pg.load_img('entities/enemy/bullet.png', (0,0,0), 1),
+      'machine': pg.load_img('ui/machine.png', scale=1.5),
+      'arrow': pg.load_img('ui/arrow.png', scale=2),
       'citizen/idle' : pg.Animation(pg.load_imgs('entities/citizen/idle'), img_dur=15),
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
       'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle', scale=0.8), img_dur=15),
@@ -52,6 +54,7 @@ class Game():
       'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=1, color_key=(255,255,255)), img_dur=6),
       'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
       'player/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
+      'player/climb' : pg.Animation(pg.load_imgs('entities/player/climb', scale=1)),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
     }
 
@@ -94,10 +97,11 @@ class Game():
     self.fire_pos = []
     self.enemy_locs = []
     self.flows = []
+    self.machines = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -108,6 +112,8 @@ class Game():
         self.enemy_locs.append(spawner['pos'])
       elif spawner['variant'] == 4:
         self.flows.append(pg.entities.Flow(spawner['pos'], (self.assets['flow'].get_width(), self.assets['flow'].get_height()), self))
+      elif spawner['variant'] == 5:
+        self.machines.append(pg.entities.ArrowManager(spawner['pos'], self))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -139,6 +145,7 @@ class Game():
     self.leaf = pg.ui.LeafManager(self.display.get_width(), self.display.get_height(), leaf_img )
     
     self.particles = []
+    self.arrows = []
     self.enemy = pg.entities.EnemyManager(self, self.enemy_locs, (20 * 0.8,38 * 0.8))
     self.screenshake = 0
 
@@ -183,6 +190,25 @@ class Game():
       for citizen in self.citizens:
         citizen.update(self.tilemap, (0,0), self.dt)
         citizen.render(self.display, offset=self.scroll)
+      
+      for machine in self.machines:
+        machine.update(0.01)
+        machine.render(self.display, self.scroll)
+      
+      for arrow in self.arrows.copy():
+        if not arrow.alive:
+          self.arrows.remove(arrow)
+        else:
+          arrow.update(self.tilemap, (0,0), self.dt, self.gust.wind())
+          arrow.render(self.display, self.scroll)
+          if arrow.rect().colliderect(self.player.rect()) and abs(self.player.dashing[1]) < 30 and abs(self.player.dashing[0]) < 30:
+            arrow.alive = False
+            self.screenshake = max(16, self.screenshake)
+            for x in range(30):
+              angle = random.random() * math.pi * 2
+              speed = random.random() * 5
+              self.sparks.append(pg.ui.Spark(self.player.rect().center, angle, 2 + random.random()))
+              self.particles.append(pg.ui.Particle(self, 'particle', self.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5 ], frame=random.randint(0,7)))
       
       self.enemy.update(self.tilemap, self.display, self.scroll, self.dt)
 

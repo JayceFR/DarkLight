@@ -74,13 +74,17 @@ class Projectile(PhysicsEntity):
     self.alive = True
     self.arot = angle_of_rot
     self.velocity = init_velocity
+    self.timer = 0
   
   def update(self, tilemap, movement=(0,0), dt=1):
     super().update(tilemap, movement, dt, gravity=False)
+    self.timer += 1
     if self.collisions["left"] or self.collisions["right"] or self.collisions["up"] or self.collisions["down"]:
       self.alive = False
       for x in range(4):
         self.game.sparks.append(Spark((self.pos[0], self.pos[1]),random.random() + self.arot - math.pi, 2 + random.random()))
+    if self.timer > 360:
+      self.alive = False
   
   def render(self, surf, offset=(0,0)):
     surf.blit(self.img, (self.pos[0] - offset[0], self.pos[1] - offset[1]))

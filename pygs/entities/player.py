@@ -58,7 +58,7 @@ class Player(PhysicsEntity):
             self.jumps = min(self.jumps + 1, 2)
             #restock dashes
             self.dashes = 1
-            self.velocity[1] = min(self.velocity[1], 0.5)
+            self.velocity[1] = min(self.velocity[1], 0)
             if self.collisions['right']:
                 self.flip = False
             else:
@@ -73,6 +73,10 @@ class Player(PhysicsEntity):
                 self.set_action('run')
             else:
                 self.set_action('idle')
+        else:
+            if self.game.hud.get_controls()["up"]:
+                self.velocity[1] = -0.5
+            self.set_action('climb')
 
 
         if abs(self.dashing[0]) in {40, 30} or abs(self.dashing[1]) in {40,30}:
