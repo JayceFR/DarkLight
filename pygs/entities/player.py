@@ -20,6 +20,7 @@ class Player(PhysicsEntity):
         self.hit = 0  # amount, left, right, top, bottom
         self.hit_facing_right = True
         self.hit_facing_up = None
+        self.hit_timer = 40
         self.hit_rect = (0,0,0,0)
         self.jump_buffer = 10
         self.can_wallslide = True
@@ -93,11 +94,11 @@ class Player(PhysicsEntity):
 
 
         if abs(self.dashing[0]) in {40, 30} or abs(self.dashing[1]) in {40,30}:
-                for x in range(20):
-                    angle = random.random() * math.pi * 2
-                    speed = random.random() * 0.5 + 0.5
-                    pvel = [math.cos(angle) * speed, math.sin(angle) * speed]
-                    self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
+            for x in range(20):
+                angle = random.random() * math.pi * 2
+                speed = random.random() * 0.5 + 0.5
+                pvel = [math.cos(angle) * speed, math.sin(angle) * speed]
+                self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
         if self.dashing[0]> 0:
             self.dashing[0] = max(0, self.dashing[0] - 1)
         if self.dashing[0] < 0:
@@ -139,8 +140,9 @@ class Player(PhysicsEntity):
             self.velocity[0] = 0
             self.velocity[1] = 0
         
+        self.hit_timer = min(40, self.hit_timer + 1)
+        
         self.jump_buffer = max(0, self.jump_buffer - 1)
-        # self.hit = min(self.hit + 0.1, 0)
     
     def render(self, surf, offset=(0,0)):
         if abs(self.dashing[0]) <= 30:
@@ -168,21 +170,23 @@ class Player(PhysicsEntity):
             self.air_time = 5
     
     def attack(self):
-        self.hit = 10
-        self.hit_facing_up = None
-        self.hit_facing_right = not self.flip
-        if self.flip:
-            self.hit_rect = (self.pos[0] - self.size[0] - 10, self.pos[1], self.size[0] + 20, self.size[1] )
-        else:
-            self.hit_rect = (self.pos[0] , self.pos[1] , self.size[0] + 20, self.size[1] )
-        if self.game.hud.get_controls()["up"]:
-            self.hit_facing_right = None
-            self.hit_facing_up = True
-            self.hit_rect =  (self.pos[0] , self.pos[1] - self.size[1], self.size[0] , self.size[1] + 5 )
-        elif self.game.hud.get_controls()["down"]:
-            self.hit_facing_right = None
-            self.hit_facing_up = False
-            self.hit_rect = (self.pos[0] , self.pos[1] + self.size[1] //2 , self.size[0] , self.size[1] + 5 )
+        if self.hit_timer >= 40:
+            self.hit_timer = 0 
+            self.hit = 10
+            self.hit_facing_up = None
+            self.hit_facing_right = not self.flip
+            if self.flip:
+                self.hit_rect = (self.pos[0] - self.size[0] - 10, self.pos[1], self.size[0] + 20, self.size[1] )
+            else:
+                self.hit_rect = (self.pos[0] , self.pos[1] , self.size[0] + 20, self.size[1] )
+            if self.game.hud.get_controls()["up"]:
+                self.hit_facing_right = None
+                self.hit_facing_up = True
+                self.hit_rect =  (self.pos[0] , self.pos[1] - self.size[1], self.size[0] , self.size[1] + 5 )
+            elif self.game.hud.get_controls()["down"]:
+                self.hit_facing_right = None
+                self.hit_facing_up = False
+                self.hit_rect = (self.pos[0] , self.pos[1] + self.size[1] //2 , self.size[0] , self.size[1] + 5 )
     
     def get_hit_rect(self):
         return pygame.rect.Rect(self.hit_rect[0], self.hit_rect[1], self.hit_rect[2], self.hit_rect[3])
