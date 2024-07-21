@@ -5,4 +5,5 @@ from pygs.utils.images import *
 from pygs.utils.game_math import *
 from pygs.utils.decorators import pygs
 from pygs.system.settings import Settings
+from pygs.system.typewriter import TypeWriter
 from pygs.shader.shader import Shader

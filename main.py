@@ -61,7 +61,12 @@ class Game():
       'player/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
       'player/death': pg.Animation(pg.load_imgs('entities/player/death', scale=1), img_dur=6, loop=False),
       'player/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
-      'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
+      'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False),
+      'player/speak' : pg.Animation(pg.load_imgs('entities/player/speak', scale=5), img_dur=16),
+      'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
+      'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
+      'potion' : pg.load_img('ui/potion.png', scale=1),
+      'skull' : pg.load_img('ui/skull.png', scale=1),
     }
 
     self.sfx = {
@@ -81,14 +86,40 @@ class Game():
     self.dt = 0
 
     self.tilemap = pg.TileMap(self, tile_size=16)
-    self.load_level(["map", "j"])
+    self.curr_level = 0
+
+    self.levels = [
+      ["map", "j", ["These Hoodie Reddies constantly bully us", "Oh yeah i fugured it out", "What harm did we do? Hope my dear friend is safe", "Only if we had the strength to face them.", "Yeah, i feel helpless and abandoned"], 'eyeball', (586, 602)],
+      ["map", "j", ["Oh praise the lord, You brought the second ingredient", "Thanks I guess... It is not too dangerous out there", "Wait do you not know", "Umm... What", "Yesterday someone took down some of the red hoodies", "Oh a saviour finally", "Take some rest now, Good night", "Good night"], 'potion', (137, 170)], 
+      ["map", "j", ["Thanks for bringing the last ingredient!", "Your welcome", "You have done a really good job but I can offer nothing in return except this shed", "That's more than enough for me, now the real threat arises",], 'skull', (383, 874)], 
+    ]
+
+    self.load_level(
+      self.levels[self.curr_level]
+    )
   
-  #level -> [name, j/h]
+  #level -> [name, j/h, list_of_text]
   def load_level(self, level):
     print(level)
     # self.tilemap.load('data/save/maps/' + level[0] + '.json')
     self.tilemap.load('./map.json')
-    self.player.who = level[1]
+
+    if self.player.who == "j":
+      self.player.who = level[1]
+      self.font = pygame.font.Font('./data/font/munro.ttf', 20)
+      self.typer = pg.TypeWriter(self.font, (255,255,255), 150,70, 600, 20, None)
+      self.player_talk = self.assets['player/speak'].copy()
+      self.citizen_talk = self.assets['citizen/speak'].copy()
+      self.typer.write(level[2])
+      self.buried_point = level[4]
+      self.img = self.assets[level[3]]
+      self.close_to_point = False
+      self.done_typing = False
+      self.collected = False
+      self.delivered = False
+      self.home_pos = [1025, 938]
+
+    self.dimension = [82,61]
 
     self.fragment_loc = "./data/scripts/fragment.frag"
     self.vertex_loc = "./data/scripts/vertex.vert"
@@ -173,15 +204,16 @@ class Game():
   @pg.pygs
   def run(self):
       self.clock.tick(60)
-      print(self.dead)
       if self.dead > 0:
         self.dead += 1
         if self.dead > 80:
-          self.load_level(['map', 'j'])
+          self.load_level(self.levels[self.curr_level])
       time = pygame.time.get_ticks()
       # print(self.clock.get_fps())
       self.ui_display.fill((0,0,0,0))
       self.display.fill((2,2,2))
+
+      # print(self.player.pos)
 
       self.screenshake = max(0, self.screenshake - 1)
 
@@ -196,6 +228,9 @@ class Game():
 
       self.true_scroll[0] += (self.player.rect().x - self.true_scroll[0] - 1280//4) / 5
       self.true_scroll[1] += (self.player.rect().y - self.true_scroll[1] - 720//4) / 20
+
+      self.true_scroll[0] = max(0, min( self.dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
+      self.true_scroll[1] = max(0, min(self.dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
 
       self.scroll = self.true_scroll.copy()
       self.scroll[0] = int(self.scroll[0])
@@ -246,6 +281,32 @@ class Game():
 
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
+
+      if self.player.who == "j":
+        if self.delivered:
+          if not self.done_typing:
+            pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
+            self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(350,300))
+            if self.typer.banana_turn % 2 != 0:
+              self.ui_display.blit(self.player_talk.img(), (10,10))
+              self.player_talk.update()
+            else:
+              self.ui_display.blit(self.citizen_talk.img(), (10,10))
+              self.citizen_talk.update()
+
+        if not self.collected:
+          if self.player.rect().collidepoint(self.buried_point[0], self.buried_point[1]):
+            #draw E
+            img = self.font.render("E To Collect", False, (255,255,255))
+            self.ui_display.blit(img, (500, 330))
+        
+        if self.collected and not self.delivered:
+          if self.player.rect().collidepoint(self.home_pos[0], self.home_pos[1]):
+            img = self.font.render("E To Deliver", False, (255,255,255))
+            self.ui_display.blit(img, (500, 330))
+        
+        if self.collected and not self.delivered:
+          self.ui_display.blit(self.img, (10,10))
 
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)

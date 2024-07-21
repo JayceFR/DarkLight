@@ -30,10 +30,11 @@ class Settings():
         "up" : [pygame.K_UP, pygame.K_w],
         "down" : [pygame.K_DOWN, pygame.K_s],
         "jump" : [pygame.K_SPACE],
-        "dash" : [pygame.K_e, pygame.K_l],
+        "dash" : [pygame.K_l],
         "settings": [pygame.K_ESCAPE],
         "attack" : [pygame.K_j],
         "select" : [pygame.K_RETURN],
+        "pickup" : [pygame.K_e]
       },
       "display" : {
         "res" : [960, 540]

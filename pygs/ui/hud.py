@@ -65,6 +65,14 @@ class Hud():
                 if event.key in key_controls["dash"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
                         self.obj.player.dash()
+                if event.key in key_controls["pickup"]:
+                    if self.obj.__class__.__name__ == "Game" and self.obj.player.who == "j":
+                        if self.obj.collected == False:
+                            if self.obj.player.rect().collidepoint(self.obj.buried_point[0], self.obj.buried_point[1]):
+                                self.obj.collected = True
+                        if self.obj.collected and self.obj.player.rect().collidepoint(self.obj.home_pos):
+                            print("deliverd is change")
+                            self.obj.delivered = True
                 if event.key in key_controls["select"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.settings_window and self.obj.settings.curr_hover_pos != -1:
                         self.obj.settings.update_res(self.obj.settings.resolutions[self.obj.settings.curr_hover_pos][1])

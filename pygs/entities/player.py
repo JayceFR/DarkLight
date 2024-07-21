@@ -175,7 +175,7 @@ class Player(PhysicsEntity):
                 self.air_time = 5
     
     def attack(self):
-        if self.game.dead <= 0:
+        if self.game.dead <= 0 and self.who != "j":
             if self.hit_timer >= 40:
                 self.hit_timer = 0 
                 self.hit = 10
