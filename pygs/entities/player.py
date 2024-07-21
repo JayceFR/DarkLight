@@ -8,7 +8,7 @@ class Player(PhysicsEntity):
         self.air_time = 0
         self.jumps = 2
         self.dashes = 1
-        self.wall_slide = False
+        self.wall_slide = 0
         self.dashing = [0,0]
         self.max_speed = [5, 5] #left and right along x axis
         self.orig_max_speed = [5, 5]
@@ -22,6 +22,7 @@ class Player(PhysicsEntity):
         self.hit_facing_up = None
         self.hit_rect = (0,0,0,0)
         self.jump_buffer = 10
+        self.can_wallslide = True
     
     def update(self, tilemap, movement = [0,0], dt = 1, wind = 0):
         if movement[0] > self.last_movement[0]:
@@ -48,23 +49,23 @@ class Player(PhysicsEntity):
             self.air_time = 0
             self.jumps = 2
             self.dashes = 1
+            self.can_wallslide = True
             if self.jump_buffer:
                 self.jump()
 
-        self.wall_slide = False
-        if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
-            self.wall_slide = True
+        if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4 and self.wall_slide == 0 and self.can_wallslide :
+            self.wall_slide = 90
+            self.can_wallslide = False
             #extra jump in wall slide
             self.jumps = min(self.jumps + 1, 2)
             #restock dashes
             self.dashes = 1
-            self.velocity[1] = min(self.velocity[1], 0)
             if self.collisions['right']:
                 self.flip = False
             else:
                 self.flip = True
         
-        if not self.wall_slide:
+        if self.wall_slide < 20:
             if self.hit > 0:
                 self.set_action('hit')
             elif self.air_time > 4:
@@ -74,9 +75,15 @@ class Player(PhysicsEntity):
             else:
                 self.set_action('idle')
         else:
+            if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
+                self.velocity[1] = min(self.velocity[1], 0)
+            else:
+                self.wall_slide = 0
             if self.game.hud.get_controls()["up"]:
                 self.velocity[1] = -0.5
             self.set_action('climb')
+        
+        self.wall_slide = max(0, self.wall_slide - 1)
 
 
         if abs(self.dashing[0]) in {40, 30} or abs(self.dashing[1]) in {40,30}:
@@ -136,7 +143,7 @@ class Player(PhysicsEntity):
             #     pygame.draw.rect(surf, (255,0,0), (self.hit_rect[0] - offset[0], self.hit_rect[1] - offset[1], self.hit_rect[2], self.hit_rect[3]))
     
     def jump(self):
-        if self.wall_slide:
+        if self.wall_slide > 20:
             if self.flip and self.last_movement[0] < 0:
                 self.velocity[0] = 1.5
                 self.velocity[1] = -3
