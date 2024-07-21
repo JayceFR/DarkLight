@@ -65,8 +65,8 @@ class Game():
       'player/speak' : pg.Animation(pg.load_imgs('entities/player/speak', scale=5), img_dur=16),
       'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
       'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
-      'potion' : pg.load_img('ui/potion.png', scale=1),
-      'skull' : pg.load_img('ui/skull.png', scale=1),
+      'potion' : pg.load_img('ui/potion.png', scale=5),
+      'skull' : pg.load_img('ui/skull.png', scale=5),
     }
 
     self.sfx = {
@@ -200,20 +200,29 @@ class Game():
     self.darkness = 0
 
     self.dead = -3
+    self.transition = -30
 
   @pg.pygs
   def run(self):
       self.clock.tick(60)
       if self.dead > 0:
         self.dead += 1
+        if self.dead >= 50:
+          self.transition = min(self.transition + 1, 30)
         if self.dead > 80:
           self.load_level(self.levels[self.curr_level])
+
+      if self.transition > 30:
+        self.curr_level += 1
+        self.load_level(self.levels[self.curr_level])
+        
       time = pygame.time.get_ticks()
       # print(self.clock.get_fps())
       self.ui_display.fill((0,0,0,0))
       self.display.fill((2,2,2))
 
-      # print(self.player.pos)
+      if self.transition < 0:
+        self.transition += 1
 
       self.screenshake = max(0, self.screenshake - 1)
 
@@ -282,31 +291,6 @@ class Game():
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
 
-      if self.player.who == "j":
-        if self.delivered:
-          if not self.done_typing:
-            pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
-            self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(350,300))
-            if self.typer.banana_turn % 2 != 0:
-              self.ui_display.blit(self.player_talk.img(), (10,10))
-              self.player_talk.update()
-            else:
-              self.ui_display.blit(self.citizen_talk.img(), (10,10))
-              self.citizen_talk.update()
-
-        if not self.collected:
-          if self.player.rect().collidepoint(self.buried_point[0], self.buried_point[1]):
-            #draw E
-            img = self.font.render("E To Collect", False, (255,255,255))
-            self.ui_display.blit(img, (500, 330))
-        
-        if self.collected and not self.delivered:
-          if self.player.rect().collidepoint(self.home_pos[0], self.home_pos[1]):
-            img = self.font.render("E To Deliver", False, (255,255,255))
-            self.ui_display.blit(img, (500, 330))
-        
-        if self.collected and not self.delivered:
-          self.ui_display.blit(self.img, (10,10))
 
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)
@@ -333,6 +317,34 @@ class Game():
 
       self.fireflies.recursive_call(time, self.display, self.scroll, self.dt)
       self.leaf.recursive_call(time, self.display, self.scroll, self.gust.wind(), dt=self.dt)
+
+      if self.player.who == "j":
+        if self.delivered:
+          if not self.done_typing:
+            pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
+            self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(350,300))
+            if self.typer.banana_turn % 2 != 0:
+              self.ui_display.blit(self.player_talk.img(), (10,10))
+              self.player_talk.update()
+            else:
+              self.ui_display.blit(self.citizen_talk.img(), (10,10))
+              self.citizen_talk.update()
+          else:
+            self.transition += 1
+
+        if not self.collected:
+          if self.player.rect().collidepoint(self.buried_point[0], self.buried_point[1]):
+            #draw E
+            img = self.font.render("E To Collect", False, (255,255,255))
+            self.ui_display.blit(img, (500, 330))
+        
+        if self.collected and not self.delivered:
+          if self.player.rect().collidepoint(self.home_pos[0], self.home_pos[1]):
+            img = self.font.render("E To Deliver", False, (255,255,255))
+            self.ui_display.blit(img, (500, 330))
+        
+        if self.collected and not self.delivered:
+          self.ui_display.blit(self.img, (10,10))
 
       self.hud.events(self.settings.controls_keyboard)
       
