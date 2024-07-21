@@ -119,6 +119,8 @@ class EnemyManager():
               angle = random.random() * math.pi * 2
               speed = random.random() * 5
               self.game.sparks.append(Spark(enemy.rect().center, angle, 3 + random.random()))
+            self.game.sparks.append(Spark(enemy.rect().center, 0, 5 + random.random()))
+            self.game.sparks.append(Spark(enemy.rect().center, math.pi, 5 + random.random()))
           if enemy.alive and random.random() <= 0.02:
             vec = enemy.vec
             vec[1] *= -1

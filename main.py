@@ -39,11 +39,13 @@ class Game():
       'boomerang' : pg.load_img('entities/boomerang/0.png', scale=0.9),
       'decor': pg.load_imgs('tiles/decor', scale=1, color_key=(255,255,255), args={'tree3.png':[1.5,None], 'tree4.png':[1.5,None]}),
       'stone': pg.load_imgs('tiles/stone', scale=1),
+      'spike':pg.load_imgs('tiles/spike', scale=1),
       'lamp': pg.load_imgs('tiles/lamp', scale=2, color_key=(255,255,255)),
       'flower': pg.load_imgs('tiles/flower', (255,255,255)),
       'bullet': pg.load_img('entities/enemy/bullet.png', (0,0,0), 1),
       'machine': pg.load_img('ui/machine.png', scale=1.5),
       'arrow': pg.load_img('ui/arrow.png', scale=2),
+      'ball' : pg.load_img('ui/ball.png', scale=1),
       'citizen/idle' : pg.Animation(pg.load_imgs('entities/citizen/idle'), img_dur=15),
       'citizen/run': pg.Animation([pg.load_img('entities/citizen/player3.png', scale=1, color_key=(255,255,255)),],),
       'enemy/idle' : pg.Animation(pg.load_imgs('entities/enemy/idle', scale=0.8), img_dur=15),
@@ -56,6 +58,7 @@ class Game():
       'player/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
       'player/climb' : pg.Animation(pg.load_imgs('entities/player/climb', scale=1)),
       'player/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
+      'player/death': pg.Animation(pg.load_imgs('entities/player/death', scale=1), img_dur=6, loop=False),
       'player/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False)
     }
@@ -65,9 +68,6 @@ class Game():
     }
 
     self.sfx['ambience'].set_volume(0.05)
-
-    print(self.assets['decor'][0].get_alpha())
-    print(pg.load_imgs('entities/citizen/idle')[0].get_alpha())
 
     self.hud = pg.ui.Hud(self)
 
@@ -80,7 +80,10 @@ class Game():
     self.dt = 0
 
     self.tilemap = pg.TileMap(self, tile_size=16)
-    self.tilemap.load('map.json')
+    self.load_level("map")
+    
+  def load_level(self, level):
+    self.tilemap.load('data/save/maps/' + level + '.json')
 
     self.fragment_loc = "./data/scripts/fragment.frag"
     self.vertex_loc = "./data/scripts/vertex.vert"
@@ -113,7 +116,7 @@ class Game():
       elif spawner['variant'] == 3:
         self.enemy_locs.append(spawner['pos'])
       elif spawner['variant'] == 4:
-        self.flows.append(pg.entities.Flow(spawner['pos'], (self.assets['flow'].get_width(), self.assets['flow'].get_height()), self))
+        self.flows.append(pg.entities.Flow(spawner['pos'], (self.assets['flow'].get_width(), self.assets['flow'].get_height()), self, 'ball'))
       elif spawner['variant'] == 5:
         self.machines.append(pg.entities.ArrowManager(spawner['pos'], self))
     
@@ -160,9 +163,15 @@ class Game():
     self.settings_window = False
     self.darkness = 0
 
+    self.dead = 0
+
   @pg.pygs
   def run(self):
       self.clock.tick(60)
+      if self.dead:
+        self.dead += 1
+        if self.dead > 80:
+          self.load_level('map')
       time = pygame.time.get_ticks()
       # print(self.clock.get_fps())
       self.ui_display.fill((0,0,0,0))
@@ -171,12 +180,13 @@ class Game():
       self.screenshake = max(0, self.screenshake - 1)
 
       controls = self.hud.get_controls()
-      self.movement = [False, False]
-      if not self.settings_window:
-        if controls['left'] :
-          self.movement[0] = True
-        if controls['right']:
-          self.movement[1] = True
+      if not self.dead:
+        self.movement = [False, False]
+        if not self.settings_window:
+          if controls['left'] :
+            self.movement[0] = True
+          if controls['right']:
+            self.movement[1] = True
 
       self.true_scroll[0] += (self.player.rect().x - self.true_scroll[0] - 1280//4) / 5
       self.true_scroll[1] += (self.player.rect().y - self.true_scroll[1] - 720//4) / 20
@@ -216,6 +226,8 @@ class Game():
 
       for flow in self.flows.copy():
         flow.render(self.display, self.scroll)
+        if random.random() < 0.005:
+          flow.shoot()
         if flow.rect.colliderect(self.player.rect()):
           self.player.pos[0] = flow.rect.center[0] - 9
           self.player.pos[1] = flow.rect.center[1] - 9
@@ -228,6 +240,7 @@ class Game():
 
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
+
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)
 

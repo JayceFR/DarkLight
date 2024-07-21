@@ -1,4 +1,6 @@
-import pygame, math
+import pygame, math, random
+from pygs.ui.particle import Particle
+from pygs.ui.spark import Spark
 
 class PhysicsEntity:
     def __init__(self, game, e_type, pos, size, gravity=True):
@@ -35,8 +37,17 @@ class PhysicsEntity:
         frame_movement = (movement[0] + self.velocity[0] + self.momentum[0] / self.mass, movement[1] + self.velocity[1] + self.momentum[1] / self.mass)
         self.pos[0] += frame_movement[0] * self.speed[0] * dt
         entity_rect = self.rect()
-        for rect in tilemap.physics_around(self.pos):
+        prects, type_of_rect = tilemap.physics_around(self.pos)
+        for pos, rect in enumerate(prects):
             if entity_rect.colliderect(rect):
+                if self.type == "player" and type_of_rect[pos] == "spike" and not self.game.dead:
+                    #player is dead
+                    self.game.dead = 1
+                    for x in range(40):
+                        angle = random.random() * math.pi * 2
+                        speed = random.random() * 5
+                        self.game.sparks.append(Spark(self.game.player.rect().center, angle, 2 + random.random()))
+                        self.game.particles.append(Particle(self.game, 'particle', self.game.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5 ], frame=random.randint(0,7)))
                 if frame_movement[0] > 0:
                     entity_rect.right = rect.left
                     self.collisions['right'] = True
@@ -47,8 +58,17 @@ class PhysicsEntity:
         
         self.pos[1] += frame_movement[1] * self.speed[1] * dt
         entity_rect = self.rect()
-        for rect in tilemap.physics_around(self.pos):
+        prects, type_of_rect = tilemap.physics_around(self.pos)
+        for pos, rect in enumerate(prects):
             if entity_rect.colliderect(rect):
+                if self.type == "player" and type_of_rect[pos] == "spike" and not self.game.dead:
+                    #player is dead
+                    self.game.dead = 1
+                    for x in range(30):
+                        angle = random.random() * math.pi * 2
+                        speed = random.random() * 5
+                        self.game.sparks.append(Spark(self.game.player.rect().center, angle, 2 + random.random()))
+                        self.game.particles.append(Particle(self.game, 'particle', self.game.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5 ], frame=random.randint(0,7)))
                 if frame_movement[1] > 0:
                     entity_rect.bottom = rect.top
                     self.collisions['down'] = True
@@ -76,6 +96,7 @@ class PhysicsEntity:
         
     def render(self, surf, offset=(0, 0)):
         surf.blit(pygame.transform.flip(self.animation.img(), self.flip, False), (self.pos[0] - offset[0], self.pos[1] - offset[1]))
+        # pygame.draw.rect(surf, (255,0,0), (self.rect()[0] - offset[0], self.rect()[1] - offset[1], self.rect()[2], self.rect()[3]))
         # surf.blit(self.game.assets['player'], (self.pos[0] - offset[0], self.pos[1] - offset[1]))
 
         

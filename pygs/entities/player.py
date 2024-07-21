@@ -42,7 +42,7 @@ class Player(PhysicsEntity):
         if movement[0] < 0:
             self.speed[0] = min(self.speed[0] + self.acceleration, self.max_speed[0])
 
-        # self.velocity[0] += wind * 0.01       
+        # self.velocity[0] += wind * 0.01    
         super().update(tilemap, movement=movement, dt=dt)
         self.air_time += 1
 
@@ -66,29 +66,32 @@ class Player(PhysicsEntity):
             else:
                 self.flip = True
         
-        if self.wall_slide < 20:
-            if self.hit > 0:
-                if self.hit_facing_right is not None:
-                    self.set_action('hit')
-                if self.hit_facing_up is not None:
-                    if self.hit_facing_up:
-                        self.set_action('hit_up')
-                    else:
-                        self.set_action('hit_down')
-            elif self.air_time > 4:
-                self.set_action('jump')
-            elif movement[0] != 0:
-                self.set_action('run')
+        if not self.game.dead:
+            if self.wall_slide < 20:
+                if self.hit > 0:
+                    if self.hit_facing_right is not None:
+                        self.set_action('hit')
+                    if self.hit_facing_up is not None:
+                        if self.hit_facing_up:
+                            self.set_action('hit_up')
+                        else:
+                            self.set_action('hit_down')
+                elif self.air_time > 4:
+                    self.set_action('jump')
+                elif movement[0] != 0:
+                    self.set_action('run')
+                else:
+                    self.set_action('idle')
             else:
-                self.set_action('idle')
+                if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
+                    self.velocity[1] = min(self.velocity[1], 0)
+                else:
+                    self.wall_slide = 0
+                if self.game.hud.get_controls()["up"]:
+                    self.velocity[1] = -0.5
+                self.set_action('climb')
         else:
-            if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
-                self.velocity[1] = min(self.velocity[1], 0)
-            else:
-                self.wall_slide = 0
-            if self.game.hud.get_controls()["up"]:
-                self.velocity[1] = -0.5
-            self.set_action('climb')
+            self.set_action('death')
         
         self.wall_slide = max(0, self.wall_slide - 1)
 

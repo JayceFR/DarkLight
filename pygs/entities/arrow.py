@@ -8,7 +8,7 @@ class Arrow(PhysicsEntity):
     self.velocity = [0,4]
     self.timer = 0
     self.alive = True
-    self.img = self.game.assets['arrow']
+    self.img = self.game.assets[e_type]
   
   def update(self, tilemap, movement, dt, gust):
     self.timer += 1
