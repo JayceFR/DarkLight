@@ -39,6 +39,7 @@ class Game():
       'boomerang' : pg.load_img('entities/boomerang/0.png', scale=0.9),
       'decor': pg.load_imgs('tiles/decor', scale=1, color_key=(255,255,255), args={'tree3.png':[1.5,None], 'tree4.png':[1.5,None]}),
       'stone': pg.load_imgs('tiles/stone', scale=1),
+      'snow' : pg.load_imgs('tiles/snow', scale=1),
       'spike':pg.load_imgs('tiles/spike', scale=1),
       'lamp': pg.load_imgs('tiles/lamp', scale=2, color_key=(255,255,255)),
       'flower': pg.load_imgs('tiles/flower', (255,255,255)),
@@ -80,10 +81,14 @@ class Game():
     self.dt = 0
 
     self.tilemap = pg.TileMap(self, tile_size=16)
-    self.load_level("map")
-    
+    self.load_level(["map", "j"])
+  
+  #level -> [name, j/h]
   def load_level(self, level):
-    self.tilemap.load('data/save/maps/' + level + '.json')
+    print(level)
+    # self.tilemap.load('data/save/maps/' + level[0] + '.json')
+    self.tilemap.load('./map.json')
+    self.player.who = level[1]
 
     self.fragment_loc = "./data/scripts/fragment.frag"
     self.vertex_loc = "./data/scripts/vertex.vert"
@@ -163,15 +168,16 @@ class Game():
     self.settings_window = False
     self.darkness = 0
 
-    self.dead = 0
+    self.dead = -3
 
   @pg.pygs
   def run(self):
       self.clock.tick(60)
-      if self.dead:
+      print(self.dead)
+      if self.dead > 0:
         self.dead += 1
         if self.dead > 80:
-          self.load_level('map')
+          self.load_level(['map', 'j'])
       time = pygame.time.get_ticks()
       # print(self.clock.get_fps())
       self.ui_display.fill((0,0,0,0))
@@ -180,7 +186,7 @@ class Game():
       self.screenshake = max(0, self.screenshake - 1)
 
       controls = self.hud.get_controls()
-      if not self.dead:
+      if self.dead <= 0:
         self.movement = [False, False]
         if not self.settings_window:
           if controls['left'] :

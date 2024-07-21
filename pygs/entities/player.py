@@ -8,6 +8,7 @@ class Player(PhysicsEntity):
         self.air_time = 0
         self.jumps = 2
         self.dashes = 1
+        self.who = "j"
         self.wall_slide = 0
         self.dashing = [0,0]
         self.max_speed = [5, 5] #left and right along x axis
@@ -66,7 +67,7 @@ class Player(PhysicsEntity):
             else:
                 self.flip = True
         
-        if not self.game.dead:
+        if self.game.dead <= 0:
             if self.wall_slide < 20:
                 if self.hit > 0:
                     if self.hit_facing_right is not None:
@@ -154,60 +155,63 @@ class Player(PhysicsEntity):
             #     pygame.draw.rect(surf, (255,0,0), (self.hit_rect[0] - offset[0], self.hit_rect[1] - offset[1], self.hit_rect[2], self.hit_rect[3]))
     
     def jump(self):
-        if self.wall_slide > 20:
-            if self.flip and self.last_movement[0] < 0:
-                self.velocity[0] = 1.5
-                self.velocity[1] = -3
+        if self.game.dead <= 0:
+            if self.wall_slide > 20:
+                if self.flip and self.last_movement[0] < 0:
+                    self.velocity[0] = 1.5
+                    self.velocity[1] = -3
+                    self.air_time = 5
+                    self.jumps = max(0, self.jumps - 1)
+                    return True
+                elif not self.flip and self.last_movement[0] > 0:
+                    self.velocity[0] = -1.5
+                    self.velocity[1] = -3
+                    self.air_time = 5
+                    self.jumps = max(0, self.jumps - 1)
+                    return True
+            elif self.jumps:
+                self.velocity[1] = -2.5
+                self.jumps = max(0, self.jumps -1)
                 self.air_time = 5
-                self.jumps = max(0, self.jumps - 1)
-                return True
-            elif not self.flip and self.last_movement[0] > 0:
-                self.velocity[0] = -1.5
-                self.velocity[1] = -3
-                self.air_time = 5
-                self.jumps = max(0, self.jumps - 1)
-                return True
-        elif self.jumps:
-            self.velocity[1] = -2.5
-            self.jumps = max(0, self.jumps -1)
-            self.air_time = 5
     
     def attack(self):
-        if self.hit_timer >= 40:
-            self.hit_timer = 0 
-            self.hit = 10
-            self.hit_facing_up = None
-            self.hit_facing_right = not self.flip
-            if self.flip:
-                self.hit_rect = (self.pos[0] - self.size[0] - 10, self.pos[1], self.size[0] + 20, self.size[1] )
-            else:
-                self.hit_rect = (self.pos[0] , self.pos[1] , self.size[0] + 20, self.size[1] )
-            if self.game.hud.get_controls()["up"]:
-                self.hit_facing_right = None
-                self.hit_facing_up = True
-                self.hit_rect =  (self.pos[0] , self.pos[1] - self.size[1], self.size[0] , self.size[1] + 5 )
-            elif self.game.hud.get_controls()["down"]:
-                self.hit_facing_right = None
-                self.hit_facing_up = False
-                self.hit_rect = (self.pos[0] , self.pos[1] + self.size[1] //2 , self.size[0] , self.size[1] + 5 )
+        if self.game.dead <= 0:
+            if self.hit_timer >= 40:
+                self.hit_timer = 0 
+                self.hit = 10
+                self.hit_facing_up = None
+                self.hit_facing_right = not self.flip
+                if self.flip:
+                    self.hit_rect = (self.pos[0] - self.size[0] - 10, self.pos[1], self.size[0] + 20, self.size[1] )
+                else:
+                    self.hit_rect = (self.pos[0] , self.pos[1] , self.size[0] + 20, self.size[1] )
+                if self.game.hud.get_controls()["up"]:
+                    self.hit_facing_right = None
+                    self.hit_facing_up = True
+                    self.hit_rect =  (self.pos[0] , self.pos[1] - self.size[1], self.size[0] , self.size[1] + 5 )
+                elif self.game.hud.get_controls()["down"]:
+                    self.hit_facing_right = None
+                    self.hit_facing_up = False
+                    self.hit_rect = (self.pos[0] , self.pos[1] + self.size[1] //2 , self.size[0] , self.size[1] + 5 )
     
     def get_hit_rect(self):
         return pygame.rect.Rect(self.hit_rect[0], self.hit_rect[1], self.hit_rect[2], self.hit_rect[3])
     
     def dash(self):
-        if self.dashes:
-            if not self.dashing[0]:
-                if self.game.hud.get_controls()["left"]:
-                    self.dashing[0] = -38
-                    self.game.screenshake = max(20, self.game.screenshake)
-                if self.game.hud.get_controls()["right"]:
-                    self.dashing[0] = 38
-                    self.game.screenshake = max(20, self.game.screenshake)
-                if self.game.hud.get_controls()["up"]:
-                    self.dashing[1] = -38
-                    self.game.screenshake = max(20, self.game.screenshake)
-                if self.game.hud.get_controls()["down"]:
-                    print("dashing down")
-                    self.dashing[1] = 38
-                    self.game.screenshake = max(20, self.game.screenshake)
-            self.dashes = max(0, self.dashes -1)
+        if self.game.dead <= 0:
+            if self.dashes:
+                if not self.dashing[0]:
+                    if self.game.hud.get_controls()["left"]:
+                        self.dashing[0] = -38
+                        self.game.screenshake = max(20, self.game.screenshake)
+                    if self.game.hud.get_controls()["right"]:
+                        self.dashing[0] = 38
+                        self.game.screenshake = max(20, self.game.screenshake)
+                    if self.game.hud.get_controls()["up"]:
+                        self.dashing[1] = -38
+                        self.game.screenshake = max(20, self.game.screenshake)
+                    if self.game.hud.get_controls()["down"]:
+                        print("dashing down")
+                        self.dashing[1] = 38
+                        self.game.screenshake = max(20, self.game.screenshake)
+                self.dashes = max(0, self.dashes -1)

@@ -145,6 +145,7 @@ class EnemyManager():
         projectile.render(display, scroll)
         if abs(self.game.player.dashing[1]) < 30 and abs(self.game.player.dashing[0]) < 30 and projectile.rect().colliderect(self.game.player.rect()):
           self.projectiles.remove(projectile)
+          self.game.dead += 1
           self.game.screenshake = max(16, self.game.screenshake)
           for x in range(30):
             angle = random.random() * math.pi * 2

@@ -57,13 +57,13 @@ class Hud():
                     self.return_dict["left"] = True
                 if event.key in key_controls["jump"]:
                     if self.obj.__class__.__name__ == "Game" and not self.obj.settings_window:
-                        if self.obj.player.jumps:
+                        if self.obj.player.jumps and self.obj.dead <= 0:
                             self.obj.player.jump()
                         else:
                             self.obj.player.jump_buffer = 14
                     self.return_dict["jump"] = True
                 if event.key in key_controls["dash"]:
-                    if self.obj.__class__.__name__ == "Game":
+                    if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
                         self.obj.player.dash()
                 if event.key in key_controls["select"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.settings_window and self.obj.settings.curr_hover_pos != -1:

@@ -40,7 +40,7 @@ class PhysicsEntity:
         prects, type_of_rect = tilemap.physics_around(self.pos)
         for pos, rect in enumerate(prects):
             if entity_rect.colliderect(rect):
-                if self.type == "player" and type_of_rect[pos] == "spike" and not self.game.dead:
+                if self.type == "player" and type_of_rect[pos] == "spike" and self.game.dead <= 0:
                     #player is dead
                     self.game.dead = 1
                     for x in range(40):
@@ -61,7 +61,7 @@ class PhysicsEntity:
         prects, type_of_rect = tilemap.physics_around(self.pos)
         for pos, rect in enumerate(prects):
             if entity_rect.colliderect(rect):
-                if self.type == "player" and type_of_rect[pos] == "spike" and not self.game.dead:
+                if self.type == "player" and type_of_rect[pos] == "spike" and self.game.dead <= 0:
                     #player is dead
                     self.game.dead = 1
                     for x in range(30):

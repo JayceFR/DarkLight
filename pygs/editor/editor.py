@@ -24,13 +24,14 @@ class Editor():
       'decor': load_imgs('tiles/decor', scale=1, color_key=(255,255,255), args={'tree3.png':[1.5,None], 'tree4.png':[1.5,None]}),
       'lamp': load_imgs('tiles/lamp', scale=2, color_key=(255,255,255)),
       'stone': load_imgs('tiles/stone', scale=1),
+      'snow' : load_imgs('tiles/snow', scale=1),
       'spike': load_imgs('tiles/spike', scale=1),
       'flower': load_imgs('tiles/flower', (255,255,255)),
       'spawners': load_imgs('tiles/spawners', (0,0,0)),
     }
 
     self.hud = Hud(self)
-    print(self.__class__)
+    # print(self.__class__)
 
     self.clock = pygame.time.Clock()
 
@@ -192,7 +193,7 @@ class Editor():
             if hover_tile > -1:
               self.tile_variant = hover_tile
           else:
-            print("i m here")
+            # print("i m here")
             #right pane
             self.clicking = True
       else:
