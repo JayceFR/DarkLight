@@ -10,6 +10,7 @@ def pygs(function):
     uniform = {'noise_tex1': self.noise_img1, 'noise_tex2' : self.noise_img2}
     start_time = time.time()
     self.sfx['ambience'].play(-1)
+    self.sfx['song'].play(-1)
     last_time = time.time()
     while run:
       self.dt = time.time() - last_time

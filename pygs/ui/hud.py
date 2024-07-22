@@ -17,6 +17,7 @@ class Hud():
                     self.return_dict["jump"] = True
                     if self.obj.__class__.__name__ == "Game" and not self.obj.settings_window:
                         self.obj.player.jump()
+                        self.obj.sfx['jump'].play()
                     # if joystick.rumble(0, 0.7, 500):
                     #     print(f"Rumble effect played on joystick {event.instance_id}")
             if event.type == pygame.JOYBUTTONUP:
@@ -69,9 +70,11 @@ class Hud():
                     if self.obj.__class__.__name__ == "Game" and self.obj.player.who == "j":
                         if self.obj.collected == False:
                             if self.obj.player.rect().collidepoint(self.obj.buried_point[0], self.obj.buried_point[1]):
+                                self.obj.sfx['pickup'].play()
                                 self.obj.collected = True
                         if self.obj.collected and self.obj.player.rect().collidepoint(self.obj.home_pos):
                             print("deliverd is change")
+                            self.obj.sfx['pickup'].play()
                             self.obj.delivered = True
                 if event.key in key_controls["select"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.settings_window and self.obj.settings.curr_hover_pos != -1:

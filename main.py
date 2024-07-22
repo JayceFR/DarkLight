@@ -64,16 +64,21 @@ class Game():
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False),
       'player/speak' : pg.Animation(pg.load_imgs('entities/player/speak', scale=5), img_dur=16),
       'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
+      'ghost' : pg.load_img('ui/ghost.png'),
       'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
       'potion' : pg.load_img('ui/potion.png', scale=5),
       'skull' : pg.load_img('ui/skull.png', scale=5),
     }
 
     self.sfx = {
-      'ambience': pygame.mixer.Sound('./data/music/ambience.wav')
+      'ambience': pygame.mixer.Sound('./data/music/ambience.wav'),
+      'song': pygame.mixer.Sound('./data/music/song.wav'),
+      'jump': pygame.mixer.Sound('./data/music/jump.wav'),
+      'pickup' : pygame.mixer.Sound('./data/music/pickup.wav')
     }
 
     self.sfx['ambience'].set_volume(0.05)
+    self.sfx['song'].set_volume(0.7)
 
     self.hud = pg.ui.Hud(self)
 
@@ -90,9 +95,16 @@ class Game():
 
     self.levels = [
       ["map", "j", ["These Hoodie Reddies constantly bully us", "Oh yeah i fugured it out", "What harm did we do? Hope my dear friend is safe", "Only if we had the strength to face them.", "Yeah, i feel helpless and abandoned"], 'eyeball', (586, 602)],
+      ["1", "h"],
       ["map", "j", ["Oh praise the lord, You brought the second ingredient", "Thanks I guess... It is not too dangerous out there", "Wait do you not know", "Umm... What", "Yesterday someone took down some of the red hoodies", "Oh a saviour finally", "Take some rest now, Good night", "Good night"], 'potion', (137, 170)], 
+      ["2", "h"],
       ["map", "j", ["Thanks for bringing the last ingredient!", "Your welcome", "You have done a really good job but I can offer nothing in return except this shed", "That's more than enough for me, now the real threat arises",], 'skull', (383, 874)], 
+      ["3", "h"],
     ]
+
+    # self.levels = [
+    #   ["map", "h"]
+    # ]
 
     self.load_level(
       self.levels[self.curr_level]
@@ -101,11 +113,12 @@ class Game():
   #level -> [name, j/h, list_of_text]
   def load_level(self, level):
     print(level)
-    # self.tilemap.load('data/save/maps/' + level[0] + '.json')
-    self.tilemap.load('./map.json')
+    self.tilemap.load('data/save/maps/' + level[0] + '.json')
+    # self.tilemap.load('./map.json')
+
+    self.player.who = level[1]
 
     if self.player.who == "j":
-      self.player.who = level[1]
       self.font = pygame.font.Font('./data/font/munro.ttf', 20)
       self.typer = pg.TypeWriter(self.font, (255,255,255), 150,70, 600, 20, None)
       self.player_talk = self.assets['player/speak'].copy()
@@ -139,10 +152,11 @@ class Game():
     self.enemy_locs = []
     self.flows = []
     self.machines = []
+    self.ghost = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -155,6 +169,8 @@ class Game():
         self.flows.append(pg.entities.Flow(spawner['pos'], (self.assets['flow'].get_width(), self.assets['flow'].get_height()), self, 'ball'))
       elif spawner['variant'] == 5:
         self.machines.append(pg.entities.ArrowManager(spawner['pos'], self))
+      elif spawner['variant'] == 6:
+        self.ghost.append(pg.entities.Ghost(self, spawner['pos'], (self.assets['ghost'].get_width(), self.assets['ghost'].get_height()) ))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -212,6 +228,10 @@ class Game():
         if self.dead > 80:
           self.load_level(self.levels[self.curr_level])
 
+      if self.player.who == "h":
+        if len(self.enemy.enemies) == 0 and len(self.ghost) == 0:
+          self.transition += 1
+
       if self.transition > 30:
         self.curr_level += 1
         self.load_level(self.levels[self.curr_level])
@@ -256,6 +276,10 @@ class Game():
       for machine in self.machines:
         machine.update(0.01)
         machine.render(self.display, self.scroll)
+      
+      for ghost in self.ghost:
+        ghost.update(self.tilemap)
+        ghost.render(self.display, self.scroll)
       
       for arrow in self.arrows.copy():
         if not arrow.alive:
