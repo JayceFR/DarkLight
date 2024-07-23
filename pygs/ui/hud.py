@@ -4,7 +4,7 @@ class Hud():
         pygame.init()
         self.joysticks = {}
         self.obj = obj
-        self.return_dict = {"l_click": False, "ongrid": True, "r_click": False, "run" : True, "left" : False, "right" : False, "up" : False, "down": False, "jump": False, "x_axis" : 0.0}
+        self.return_dict = {"l_click": False, "ongrid": True, "r_click": False, "run" : True, "left" : False, "right" : False, "up" : False, "down": False, "jump": False, "x_axis" : 0.0, "y_axis" : 0.0}
 
     def events(self, key_controls):
         # self.return_dict = {"run" : True, "left" : False, "right" : False, "jump": False}
@@ -12,12 +12,19 @@ class Hud():
             if event.type == pygame.QUIT:
                 self.return_dict["run"] = False
             if event.type == pygame.JOYBUTTONDOWN:
+                joystick = self.joysticks[event.instance_id]
+                if event.button == 9 or event.button == 10:
+                    if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
+                        self.obj.player.dash()
+                        joystick.rumble(0, 0.6, 300)
                 if event.button == 0:
                     joystick = self.joysticks[event.instance_id]
                     self.return_dict["jump"] = True
                     if self.obj.__class__.__name__ == "Game" and not self.obj.settings_window:
-                        self.obj.player.jump()
-                        self.obj.sfx['jump'].play()
+                        if self.obj.player.jumps and self.obj.dead <= 0:
+                            self.obj.player.jump()
+                        else:
+                            self.obj.player.jump_buffer = 14
                     # if joystick.rumble(0, 0.7, 500):
                     #     print(f"Rumble effect played on joystick {event.instance_id}")
             if event.type == pygame.JOYBUTTONUP:
@@ -25,7 +32,21 @@ class Hud():
                     self.return_dict["jump"] = False
             if event.type == pygame.JOYAXISMOTION:
                 if event.axis == 0:
+                    self.return_dict["left"] = False
+                    self.return_dict["right"] = False
                     self.return_dict["x_axis"] = event.value
+                    if event.value < -0.3:
+                        self.return_dict["left"] = True
+                    if event.value > 0.3:
+                        self.return_dict["right"] = True
+                if event.axis == 1:
+                    self.return_dict["up"] = False
+                    self.return_dict["down"] = False
+                    self.return_dict["y_axis"] = event.value
+                    if event.value < -0.3:
+                        self.return_dict["up"] = True
+                    if event.value > 0.3:
+                        self.return_dict["down"] = True
             if event.type == pygame.JOYDEVICEADDED:
                 print(event)
                 joy = pygame.joystick.Joystick(event.device_index)
@@ -34,10 +55,6 @@ class Hud():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     self.return_dict["l_click"] = True
-                    # if self.obj.__class__.__name__ == "Game":
-                    #     #check for changes in display res
-                    #     if self.obj.settings.curr_hover_pos != -1:
-                    #         self.obj.settings.update_res(self.obj.settings.resolutions[self.obj.settings.curr_hover_pos][1])
                     if self.obj.__class__.__name__ == "Editor":
                         if not pygame.rect.Rect(0,0,100,600).collidepoint(self.obj.mouse_pos) and not self.obj.ongrid:
                             self.obj.toggle_offgrid()

@@ -204,13 +204,13 @@ class Player(PhysicsEntity):
         if self.game.dead <= 0:
             if self.dashes:
                 if not self.dashing[0]:
-                    if self.game.hud.get_controls()["left"]:
+                    if self.game.hud.get_controls()["left"] :
                         self.dashing[0] = -38
                         self.game.screenshake = max(20, self.game.screenshake)
                     if self.game.hud.get_controls()["right"]:
                         self.dashing[0] = 38
                         self.game.screenshake = max(20, self.game.screenshake)
-                    if self.game.hud.get_controls()["up"]:
+                    if self.game.hud.get_controls()["up"] :
                         self.dashing[1] = -38
                         self.game.screenshake = max(20, self.game.screenshake)
                     if self.game.hud.get_controls()["down"]:

@@ -79,6 +79,7 @@ class Game():
 
     self.sfx['ambience'].set_volume(0.05)
     self.sfx['song'].set_volume(0.7)
+    self.sfx['jump'].set_volume(0.1)
 
     self.hud = pg.ui.Hud(self)
 
@@ -91,7 +92,7 @@ class Game():
     self.dt = 0
 
     self.tilemap = pg.TileMap(self, tile_size=16)
-    self.curr_level = 0
+    self.curr_level = 0 
 
     self.levels = [
       ["map", "j", ["These Hoodie Reddies constantly bully us", "Oh yeah i fugured it out", "What harm did we do? Hope my dear friend is safe", "Only if we had the strength to face them.", "Yeah, i feel helpless and abandoned"], 'eyeball', (586, 602)],
