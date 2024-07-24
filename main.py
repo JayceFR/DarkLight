@@ -184,6 +184,11 @@ class Game():
     self.glow_img.blit(img, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
     self.fireflies = pg.ui.Fireflies(self.display.get_width(),self.display.get_height(), self.glow_img)
 
+    self.pglow_img = pygame.Surface((255,255))
+    self.pglow_img.fill((255*0.2, 183*0.2, 255*0.3))
+    self.pglow_img.blit(img, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
+    self.fireflies = pg.ui.Fireflies(self.display.get_width(),self.display.get_height(), self.glow_img)
+
     self.lamp_img = pygame.Surface((730, 1095))
     self.lamp_img.fill((255*0.6, 255*0.6, 255*0.6))
     lamp_img = pygame.image.load('./data/images/misc/lamp2.png').convert()
@@ -315,6 +320,7 @@ class Game():
 
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
+      self.display.blit(self.pglow_img, (self.player.rect().center[0] - 255 //2 - self.scroll[0] , self.player.rect().center[1] - 255//2 - self.scroll[1] ), special_flags=BLEND_RGBA_ADD)
 
 
       for particle in self.fire_particles:

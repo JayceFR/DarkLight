@@ -10,7 +10,10 @@ from pygs.ui.hud import Hud
 from pygs.map.map import TileMap
 from pygs.system.settings import Settings
 
+
 RENDER_SCALE = 2.0
+
+
 
 class Editor():
   def __init__(self):

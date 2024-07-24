@@ -117,6 +117,9 @@ class Hud():
                 if event.key == pygame.K_o:
                     if self.obj.__class__.__name__ == "Editor":
                         self.obj.tilemap.save('map.json')
+                if event.key == pygame.K_t:
+                    if self.obj.__class__.__name__ == "Editor":
+                        self.obj.tilemap.autotile()
             if event.type == pygame.KEYUP:
                 if event.key in key_controls["right"]:
                     self.return_dict["right"] = False

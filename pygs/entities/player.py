@@ -11,8 +11,8 @@ class Player(PhysicsEntity):
         self.who = "j"
         self.wall_slide = 0
         self.dashing = [0,0]
-        self.max_speed = [5, 5] #left and right along x axis
-        self.orig_max_speed = [5, 5]
+        self.max_speed = [4, 4] #left and right along x axis
+        self.orig_max_speed = [4, 4]
         self.speed = [3,2.5] #just a scalar factor
         self.orig_speed = [3,2.5]
         self.last_time = 0
@@ -56,7 +56,7 @@ class Player(PhysicsEntity):
                 self.jump()
 
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4 and self.wall_slide == 0 and self.can_wallslide :
-            self.wall_slide = 90
+            self.wall_slide = 150
             self.can_wallslide = False
             #extra jump in wall slide
             self.jumps = min(self.jumps + 1, 2)
@@ -84,12 +84,15 @@ class Player(PhysicsEntity):
                 else:
                     self.set_action('idle')
             else:
-                if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
+                if (self.collisions['right'] or self.collisions['left']):
                     self.velocity[1] = min(self.velocity[1], 0)
+                    self.air_time = 0
                 else:
                     self.wall_slide = 0
                 if self.game.hud.get_controls()["up"]:
                     self.velocity[1] = -0.5
+                if self.game.hud.get_controls()["down"]:
+                    self.velocity[1] = 0.5
                 self.set_action('climb')
         else:
             self.set_action('death')
