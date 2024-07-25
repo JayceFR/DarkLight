@@ -26,8 +26,6 @@ class Player(PhysicsEntity):
         self.hit_rect = (0,0,0,0)
         self.jump_buffer = 16
         self.can_wallslide = True
-
-        self.dashing_directon = {"left" : False, "right": False, "up": False, "down": False}
     
     def update(self, tilemap, movement = [0,0], dt = 1, wind = 0):
         if movement[0] > self.last_movement[0]:
@@ -63,11 +61,8 @@ class Player(PhysicsEntity):
 
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4 and self.wall_slide == 0 and self.can_wallslide :
             self.wall_slide = 150
-            # self.can_wallslide = False
-            #extra jump in wall slide
-            # self.jumps = min(self.jumps + 1, 2)
             #restock dashes
-            self.dashes = 1
+            # self.dashes = 1
             if self.collisions['right']:
                 self.flip = False
             else:
@@ -106,7 +101,7 @@ class Player(PhysicsEntity):
         self.wall_slide = max(0, self.wall_slide - 1)
 
 
-        if abs(self.dashing[0]) in {18, 10} or abs(self.dashing[1]) in {18,10}:
+        if abs(self.dashing[0]) in {8, 1} or abs(self.dashing[1]) in {8,1}:
             for x in range(20):
                 angle = random.random() * math.pi * 2
                 speed = random.random() * 0.5 + 0.5
@@ -120,14 +115,16 @@ class Player(PhysicsEntity):
             self.dashing[1] = max(0, self.dashing[1] - 1)
         if self.dashing[1] < 0:
             self.dashing[1] = min(0, self.dashing[1] + 1)
-        if abs(self.dashing[0]) > 10:
+        if abs(self.dashing[0]) > 0:
             self.velocity[0] = abs(self.dashing[0]) / self.dashing[0] * 3
-            if abs(self.dashing[0]) == 11:
+            if abs(self.dashing[0]) == 1:
                 self.velocity[0] *= 0.5
             pvel = [abs(self.dashing[0])/ self.dashing[0] * random.random() * 3, 0]
             self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
-        if abs(self.dashing[1]) > 10:
+        if abs(self.dashing[1]) > 0:
             self.velocity[1] = abs(self.dashing[1]) / self.dashing[1] * 3
+            if abs(self.dashing[1]) == 1:
+                self.velocity[1] *= 0.5
             pvel = [abs(self.dashing[1])/ self.dashing[1] * random.random() * 3, 0]
             self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
         if self.velocity[0] > 0:
@@ -218,27 +215,19 @@ class Player(PhysicsEntity):
     
     def dash(self):
         if self.game.dead <= 0:
-            if self.dashes:
-                self.dashing_directon = {"left" : False, "right": False, "up": False, "down": False}
+            if (self.dashes and self.air_time > 4) or (self.dashes and self.wall_slide):
                 if not self.dashing[0]:
                     if self.game.hud.get_controls()["left"] :
-                        self.dashing[0] = -18
-                        # self.max_speed[0] = min(self.max_speed[0] + 2, self.max_speed_cap[0])
+                        self.dashing[0] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
-                        self.dashing_directon["left"] = True
                     if self.game.hud.get_controls()["right"]:
-                        self.dashing[0] = 18
-                        # self.max_speed[1] = min(self.max_speed[1] + 2, self.max_speed_cap[1])
+                        self.dashing[0] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
-                        self.dashing_directon["right"] = True
                 if not self.dashing[1]:
                     if self.game.hud.get_controls()["up"] :
-                        self.dashing[1] = -18
+                        self.dashing[1] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
-                        self.dashing_directon["up"] = True
                     if self.game.hud.get_controls()["down"]:
-                        print("dashing down")
-                        self.dashing[1] = 18
+                        self.dashing[1] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
-                        self.dashing_directon["down"] = True
                 self.dashes = max(0, self.dashes -1)
