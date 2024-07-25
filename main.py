@@ -114,10 +114,12 @@ class Game():
   #level -> [name, j/h, list_of_text]
   def load_level(self, level):
     print(level)
-    self.tilemap.load('data/save/maps/' + level[0] + '.json')
-    # self.tilemap.load('./map.json')
+    # self.tilemap.load('data/save/maps/' + level[0] + '.json')
+    self.tilemap.load('./map.json')
 
-    self.player.who = level[1]
+    # self.player.who = level[1]
+
+    self.player.who = "h"
 
     if self.player.who == "j":
       self.font = pygame.font.Font('./data/font/munro.ttf', 20)
@@ -234,9 +236,13 @@ class Game():
         if self.dead > 80:
           self.load_level(self.levels[self.curr_level])
 
-      if self.player.who == "h":
-        if len(self.enemy.enemies) == 0 and len(self.ghost) == 0:
-          self.transition += 1
+      '''
+      REMEMBER TO UNCOMMENT THE BELOW SET OF CODE
+      '''
+
+      # if self.player.who == "h":
+      #   if len(self.enemy.enemies) == 0 and len(self.ghost) == 0:
+      #     self.transition += 1
 
       if self.transition > 30:
         self.curr_level += 1
@@ -264,8 +270,8 @@ class Game():
       self.true_scroll[0] += (self.player.rect().x - self.true_scroll[0] - 1280//4) / 5
       self.true_scroll[1] += (self.player.rect().y - self.true_scroll[1] - 720//4) / 20
 
-      self.true_scroll[0] = max(0, min( self.dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
-      self.true_scroll[1] = max(0, min(self.dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
+      self.true_scroll[0] = max(-10*self.tilemap.tile_size, min( self.dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
+      self.true_scroll[1] = max(-10 * self.tilemap.tile_size, min(self.dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
 
       self.scroll = self.true_scroll.copy()
       self.scroll[0] = int(self.scroll[0])
