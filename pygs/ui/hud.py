@@ -12,25 +12,36 @@ class Hud():
             if event.type == pygame.QUIT:
                 self.return_dict["run"] = False
             if event.type == pygame.JOYBUTTONDOWN:
+                print(event)
                 joystick = self.joysticks[event.instance_id]
                 if event.button == 9 or event.button == 10:
                     if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
                         self.obj.player.dash()
-                        joystick.rumble(0, 0.6, 300)
+                        joystick.rumble(0, 0.6, 200)
+                if event.button == 2:
+                    if self.obj.__class__.__name__ == "Game":
+                        self.obj.player.attack()
                 if event.button == 0:
                     joystick = self.joysticks[event.instance_id]
                     self.return_dict["jump"] = True
                     if self.obj.__class__.__name__ == "Game" and not self.obj.settings_window:
-                        if self.obj.player.jumps and self.obj.dead <= 0:
-                            self.obj.player.jump()
-                        else:
-                            self.obj.player.jump_buffer = 14
+                        if self.obj.dead <= 0:
+                            if self.obj.player.jumps and not self.obj.player.jump_buffer:
+                                self.obj.player.jump()
+                            else:
+                                self.obj.player.jump_buffer = 14
                     # if joystick.rumble(0, 0.7, 500):
                     #     print(f"Rumble effect played on joystick {event.instance_id}")
             if event.type == pygame.JOYBUTTONUP:
                 if event.button == 0:
                     self.return_dict["jump"] = False
             if event.type == pygame.JOYAXISMOTION:
+                if event.axis == 4 or event.axis == 5:
+                    if event.value > 0.3:
+                        joystick = self.joysticks[event.instance_id]
+                        if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
+                            self.obj.player.dash()
+                            joystick.rumble(0, 0.6, 200)
                 if event.axis == 0:
                     self.return_dict["left"] = False
                     self.return_dict["right"] = False
@@ -75,10 +86,11 @@ class Hud():
                     self.return_dict["left"] = True
                 if event.key in key_controls["jump"]:
                     if self.obj.__class__.__name__ == "Game" and not self.obj.settings_window:
-                        if self.obj.player.jumps and self.obj.dead <= 0:
-                            self.obj.player.jump()
-                        else:
-                            self.obj.player.jump_buffer = 14
+                        if self.obj.dead <= 0:
+                            if self.obj.player.jumps and not self.obj.player.jump_buffer:
+                                self.obj.player.jump()
+                            else:
+                                self.obj.player.jump_buffer = 14
                     self.return_dict["jump"] = True
                 if event.key in key_controls["dash"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:

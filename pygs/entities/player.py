@@ -24,8 +24,10 @@ class Player(PhysicsEntity):
         self.hit_facing_up = None
         self.hit_timer = 40
         self.hit_rect = (0,0,0,0)
-        self.jump_buffer = 16
+        self.jump_buffer = 0
         self.can_wallslide = True
+        self.dash_dir = [0,0]
+        self.hyper_jump_buffer = 0
     
     def update(self, tilemap, movement = [0,0], dt = 1, wind = 0):
         if movement[0] > self.last_movement[0]:
@@ -57,7 +59,10 @@ class Player(PhysicsEntity):
             self.dashes = 1
             self.can_wallslide = True
             if self.jump_buffer:
+                self.jump_buffer = 0
                 self.jump()
+        
+        # print(self.hyper_jump_buffer)
 
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4 and self.wall_slide == 0 and self.can_wallslide :
             self.wall_slide = 150
@@ -99,6 +104,7 @@ class Player(PhysicsEntity):
             self.set_action('death')
         
         self.wall_slide = max(0, self.wall_slide - 1)
+        self.hyper_jump_buffer = max(0, self.hyper_jump_buffer - 1)
 
 
         if abs(self.dashing[0]) in {8, 1} or abs(self.dashing[1]) in {8,1}:
@@ -125,6 +131,7 @@ class Player(PhysicsEntity):
             self.velocity[1] = abs(self.dashing[1]) / self.dashing[1] * 3
             if abs(self.dashing[1]) == 1:
                 self.velocity[1] *= 0.5
+                self.hyper_jump_buffer = 24
             pvel = [abs(self.dashing[1])/ self.dashing[1] * random.random() * 3, 0]
             self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvel, frame=random.randint(0,7)))
         if self.velocity[0] > 0:
@@ -174,20 +181,21 @@ class Player(PhysicsEntity):
                     self.jumps = max(0, self.jumps - 1)
                     self.game.sfx['jump'].play()
                     return True
+            elif self.hyper_jump_buffer:
+                if self.dash_dir[1] > 0:
+                    self.velocity[1] = -2.5
+                    if self.dash_dir[0] < 0:
+                        print("super jum to the left")
+                        self.velocity[0] -= 1.2
+                    if self.dash_dir[0] > 0:
+                        print("super jump to the right")
+                        self.velocity[0] += 1.2
             elif self.jumps:
                 self.velocity[1] = -2.5
                 self.jumps = max(0, self.jumps -1)
                 self.game.sfx['jump'].play()
                 self.air_time = 5
-                if self.dashing[1]:
-                    # print("dashing down")
-                    self.velocity[1] = -2.5
-                    if self.dashing[0] < 0:
-                        print("super jum to the left")
-                        self.velocity[0] -= 1.2
-                    if self.dashing[0] > 0:
-                        print("super jump to the right")
-                        self.velocity[0] += 1.2
+                
                 
     
     def attack(self):
@@ -215,19 +223,31 @@ class Player(PhysicsEntity):
     
     def dash(self):
         if self.game.dead <= 0:
-            if (self.dashes and self.air_time > 4) or (self.dashes and self.wall_slide):
+            if (self.dashes and self.air_time > 1) or (self.dashes and self.wall_slide):
                 if not self.dashing[0]:
                     if self.game.hud.get_controls()["left"] :
                         self.dashing[0] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
+                        self.dash_dir[0] = -8
+                    else:
+                        self.dash_dir[0] = max(self.dash_dir[0], 0)
                     if self.game.hud.get_controls()["right"]:
                         self.dashing[0] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
+                        self.dash_dir[0] = 8
+                    else:
+                        self.dash_dir[0] = min(self.dash_dir[0], 0)
                 if not self.dashing[1]:
                     if self.game.hud.get_controls()["up"] :
                         self.dashing[1] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
+                        self.dash_dir[1] = -8
+                    else:
+                        self.dash_dir[1] = max(self.dash_dir[1], 0)
                     if self.game.hud.get_controls()["down"]:
                         self.dashing[1] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
+                        self.dash_dir[1] = 8
+                    else:
+                        self.dash_dir[1] = min(self.dash_dir[1], 0)
                 self.dashes = max(0, self.dashes -1)
