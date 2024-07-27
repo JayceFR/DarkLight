@@ -11,6 +11,7 @@ def pygs(function):
     start_time = time.time()
     self.sfx['ambience'].play(-1)
     self.sfx['song'].play(-1)
+    self.sfx['sparkle'].play(-1)
     last_time = time.time()
     while run:
       self.dt = time.time() - last_time

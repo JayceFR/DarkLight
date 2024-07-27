@@ -4,7 +4,7 @@ from ..ui.particle import Particle
 
 class Player(PhysicsEntity):
     def __init__(self, game, pos, size):
-        super().__init__(game, 'player', pos, size)
+        super().__init__(game, 'jplayer', pos, size)
         self.air_time = 0
         self.jumps = 2
         self.dashes = 1
@@ -48,7 +48,7 @@ class Player(PhysicsEntity):
 
         # self.velocity[0] += wind * 0.01    
         super().update(tilemap, movement=movement, dt=dt, gravity=False)
-        if abs(self.dashing[0]) < 10 and  abs(self.dashing[1]) < 10:
+        if abs(self.dashing[0]) < 1 and  abs(self.dashing[1]) < 1:
             self.velocity[1] = min(7, self.velocity[1] + 0.2)
         self.animation.update()
         self.air_time += 1
@@ -62,7 +62,6 @@ class Player(PhysicsEntity):
                 self.jump_buffer = 0
                 self.jump()
         
-        # print(self.hyper_jump_buffer)
 
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4 and self.wall_slide == 0 and self.can_wallslide :
             self.wall_slide = 150
@@ -172,7 +171,7 @@ class Player(PhysicsEntity):
                     self.velocity[1] = -3
                     self.air_time = 5
                     self.jumps = max(0, self.jumps - 1)
-                    self.game.sfx['jump'].play()
+                    # self.game.sfx['jump'].play()
                     return True
                 elif not self.flip and self.last_movement[0] > 0:
                     self.velocity[0] = -1.5
@@ -187,9 +186,11 @@ class Player(PhysicsEntity):
                     if self.dash_dir[0] < 0:
                         print("super jum to the left")
                         self.velocity[0] -= 1.2
+                        self.game.sfx['jump'].play()
                     if self.dash_dir[0] > 0:
                         print("super jump to the right")
                         self.velocity[0] += 1.2
+                        self.game.sfx['jump'].play()
             elif self.jumps:
                 self.velocity[1] = -2.5
                 self.jumps = max(0, self.jumps -1)
@@ -201,6 +202,7 @@ class Player(PhysicsEntity):
     def attack(self):
         if self.game.dead <= 0 and self.who != "j":
             if self.hit_timer >= 40:
+                self.game.sfx['attack'].play()
                 self.hit_timer = 0 
                 self.hit = 10
                 self.hit_facing_up = None
@@ -221,9 +223,12 @@ class Player(PhysicsEntity):
     def get_hit_rect(self):
         return pygame.rect.Rect(self.hit_rect[0], self.hit_rect[1], self.hit_rect[2], self.hit_rect[3])
     
-    def dash(self):
+    def dash(self, joystick = None):
         if self.game.dead <= 0:
             if (self.dashes and self.air_time > 1) or (self.dashes and self.wall_slide):
+                self.game.sfx['dash'].play()
+                if joystick:
+                    joystick.rumble(0, 0.6, 200)
                 if not self.dashing[0]:
                     if self.game.hud.get_controls()["left"] :
                         self.dashing[0] = -8
@@ -251,3 +256,7 @@ class Player(PhysicsEntity):
                     else:
                         self.dash_dir[1] = min(self.dash_dir[1], 0)
                 self.dashes = max(0, self.dashes -1)
+    
+    def update_who(self, to):
+        self.who = to
+        self.type = self.who + "player"

@@ -6,3 +6,4 @@ from pygs.entities.enemy import Enemy, EnemyManager
 from pygs.entities.flow import Flow
 from pygs.entities.arrow import Arrow, ArrowManager
 from pygs.entities.ghost import Ghost
+from pygs.entities.fireball import Fireball

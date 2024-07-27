@@ -7,12 +7,10 @@ pygame.init()
 
 '''
 TODO 
-The Assets for both characters
-Enemies can shoot projectile to the player
-Projectile collision and movement
-Hyde's attack 
-Need to remove the projectiles if they leave the screen
-Map 
+Map levels
+Ball of fire animation
+changing to hyde
+overheat circle blasts
 '''
 
 class Game():
@@ -40,6 +38,15 @@ class Game():
       'decor': pg.load_imgs('tiles/decor', scale=1, color_key=(255,255,255), args={'tree3.png':[1.5,None], 'tree4.png':[1.5,None]}),
       'stone': pg.load_imgs('tiles/stone', scale=1),
       'snow' : pg.load_imgs('tiles/snow', scale=1),
+      'hsnow' : pg.pallete_swap_imgs(
+        'tiles/snow', 
+        [[(153,217,234), (87,18,27)],
+         [(255,255,255), (87,40,55)],
+         [(168,73,121), (136,0,21)],
+         [(255,174,201), (237,28,36)]
+         ], 
+        scale=1
+      ),
       'spike':pg.load_imgs('tiles/spike', scale=1),
       'lamp': pg.load_imgs('tiles/lamp', scale=2, color_key=(255,255,255)),
       'flower': pg.load_imgs('tiles/flower', (255,255,255)),
@@ -53,14 +60,22 @@ class Game():
       'enemy/run': pg.Animation(pg.load_imgs('entities/enemy/run', scale=0.8), img_dur=10),
       'flow' : pg.load_img('ui/flow.png'),
       'pistol' : pg.load_img('entities/enemy/pistol.png', (0,0,0)),
-      'player/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=1, color_key=(255,255,255)), img_dur=10),
-      'player/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=1, color_key=(255,255,255)), img_dur=6),
-      'player/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
-      'player/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
-      'player/climb' : pg.Animation(pg.load_imgs('entities/player/climb', scale=1)),
-      'player/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
-      'player/death': pg.Animation(pg.load_imgs('entities/player/death', scale=1), img_dur=6, loop=False),
-      'player/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
+      'jplayer/idle' : pg.Animation(pg.load_imgs('entities/player/idle', scale=1, color_key=(255,255,255)), img_dur=10),
+      'hplayer/idle' : pg.Animation(pg.load_imgs('entities/player/hidle', scale=1, color_key=(255,255,255)), img_dur=10),
+      'jplayer/run' : pg.Animation(pg.load_imgs('entities/player/run', scale=1, color_key=(255,255,255)), img_dur=6),
+      'hplayer/run' : pg.Animation(pg.load_imgs('entities/player/hrun', scale=1, color_key=(255,255,255)), img_dur=6),
+      'jplayer/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
+      'hplayer/jump': pg.Animation(pg.load_imgs('entities/player/hjump', scale=1, color_key=(0,0,0))),
+      'jplayer/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
+      'hplayer/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
+      'jplayer/climb' : pg.Animation(pg.load_imgs('entities/player/climb', scale=1)),
+      'hplayer/climb' : pg.Animation(pg.load_imgs('entities/player/hclimb', scale=1)),
+      'jplayer/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
+      'hplayer/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
+      'jplayer/death': pg.Animation(pg.load_imgs('entities/player/death', scale=1), img_dur=6, loop=False),
+      'hplayer/death': pg.Animation(pg.load_imgs('entities/player/hdeath', scale=1), img_dur=6, loop=False),
+      'jplayer/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
+      'hplayer/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False),
       'player/speak' : pg.Animation(pg.load_imgs('entities/player/speak', scale=5), img_dur=16),
       'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
@@ -72,14 +87,22 @@ class Game():
 
     self.sfx = {
       'ambience': pygame.mixer.Sound('./data/music/ambience.wav'),
+      'sparkle': pygame.mixer.Sound('./data/music/sparkle.wav'), 
       'song': pygame.mixer.Sound('./data/music/song.wav'),
       'jump': pygame.mixer.Sound('./data/music/jump.wav'),
-      'pickup' : pygame.mixer.Sound('./data/music/pickup.wav')
+      'pickup' : pygame.mixer.Sound('./data/music/pickup.wav'),
+      'dash': pygame.mixer.Sound('./data/music/dash.wav'),
+      'attack' : pygame.mixer.Sound('./data/music/attack.wav'),
+      'run' : pygame.mixer.Sound('./data/music/run.wav'),
     }
 
     self.sfx['ambience'].set_volume(0.05)
-    self.sfx['song'].set_volume(0.7)
-    self.sfx['jump'].set_volume(0.1)
+    self.sfx['sparkle'].set_volume(0.05)
+    self.sfx['song'].set_volume(0.5)
+    self.sfx['jump'].set_volume(0.3)
+    self.sfx['run'].set_volume(0.5)
+    self.sfx['dash'].set_volume(0.3)
+    self.sfx['attack'].set_volume(0.3)
 
     self.hud = pg.ui.Hud(self)
 
@@ -119,7 +142,7 @@ class Game():
 
     # self.player.who = level[1]
 
-    self.player.who = "h"
+    self.player.update_who("j")
 
     if self.player.who == "j":
       self.font = pygame.font.Font('./data/font/munro.ttf', 20)
@@ -226,6 +249,8 @@ class Game():
     self.dead = -3
     self.transition = -30
 
+    self.fireball = pg.entities.Fireball((295,154))
+
   @pg.pygs
   def run(self):
       self.clock.tick(60)
@@ -249,6 +274,7 @@ class Game():
         self.load_level(self.levels[self.curr_level])
         
       time = pygame.time.get_ticks()
+      # print(self.player.rect()[0], self.player.rect()[1])
       # print(self.clock.get_fps())
       self.ui_display.fill((0,0,0,0))
       self.display.fill((2,2,2))
@@ -270,8 +296,8 @@ class Game():
       self.true_scroll[0] += (self.player.rect().x - self.true_scroll[0] - 1280//4) / 5
       self.true_scroll[1] += (self.player.rect().y - self.true_scroll[1] - 720//4) / 20
 
-      self.true_scroll[0] = max(-10*self.tilemap.tile_size, min( self.dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
-      self.true_scroll[1] = max(-10 * self.tilemap.tile_size, min(self.dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
+      self.true_scroll[0] = max(0*self.tilemap.tile_size, min( self.dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
+      self.true_scroll[1] = max(0 * self.tilemap.tile_size, min(self.dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
 
       self.scroll = self.true_scroll.copy()
       self.scroll[0] = int(self.scroll[0])
@@ -327,7 +353,9 @@ class Game():
       self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
       self.display.blit(self.pglow_img, (self.player.rect().center[0] - 255 //2 - self.scroll[0] , self.player.rect().center[1] - 255//2 - self.scroll[1] ), special_flags=BLEND_RGBA_ADD)
-
+      
+      self.fireball.update(time)
+      self.fireball.render(self.display, self.scroll)
 
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)

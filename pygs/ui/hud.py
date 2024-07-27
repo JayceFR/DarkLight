@@ -12,12 +12,11 @@ class Hud():
             if event.type == pygame.QUIT:
                 self.return_dict["run"] = False
             if event.type == pygame.JOYBUTTONDOWN:
-                print(event)
                 joystick = self.joysticks[event.instance_id]
                 if event.button == 9 or event.button == 10:
                     if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
-                        self.obj.player.dash()
-                        joystick.rumble(0, 0.6, 200)
+                        self.obj.player.dash(joystick)
+                        # joystick.rumble(0, 0.6, 200)
                 if event.button == 2:
                     if self.obj.__class__.__name__ == "Game":
                         self.obj.player.attack()
@@ -40,8 +39,8 @@ class Hud():
                     if event.value > 0.3:
                         joystick = self.joysticks[event.instance_id]
                         if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
-                            self.obj.player.dash()
-                            joystick.rumble(0, 0.6, 200)
+                            self.obj.player.dash(joystick)
+                            # joystick.rumble(0, 0.6, 200)
                 if event.axis == 0:
                     self.return_dict["left"] = False
                     self.return_dict["right"] = False
@@ -110,12 +109,12 @@ class Hud():
                         self.obj.settings.update_res(self.obj.settings.resolutions[self.obj.settings.curr_hover_pos][1])
                 if event.key in key_controls["up"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.settings_window:
-                        self.obj.settings.update_hover_pos((self.obj.settings.curr_hover_pos - 1) % len(self.obj.settings.resolutions))
+                        self.obj.settings.update_hover_pos(-1)
                     else:
                         self.return_dict["up"] = True
                 if event.key in key_controls["down"]:
                     if self.obj.__class__.__name__ == "Game" and self.obj.settings_window:
-                        self.obj.settings.update_hover_pos((self.obj.settings.curr_hover_pos + 1) % len(self.obj.settings.resolutions))
+                        self.obj.settings.update_hover_pos(1)
                     self.return_dict["down"] = True
                 if event.key == pygame.K_LSHIFT:
                     if self.obj.__class__.__name__ == "Editor":
@@ -132,6 +131,9 @@ class Hud():
                 if event.key == pygame.K_t:
                     if self.obj.__class__.__name__ == "Editor":
                         self.obj.tilemap.autotile()
+                if event.key == pygame.K_TAB:
+                    if self.obj.__class__.__name__ == "Game" and self.obj.settings_window:
+                        self.obj.settings.update_tab_hover_pos()
             if event.type == pygame.KEYUP:
                 if event.key in key_controls["right"]:
                     self.return_dict["right"] = False

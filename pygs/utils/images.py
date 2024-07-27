@@ -24,6 +24,24 @@ def load_imgs(path, color_key=(0,0,0), scale=0, scale_coords=None, args={}):
     images.append(load_img(path + "/" + img_name, color_key=color_key, scale=scale, scale_coords=scale_coords))
   return images 
 
+def pallete_swap(surf, old_c, new_c):
+  img_copy = pygame.Surface(surf.get_size())
+  img_copy.fill(new_c)
+  surf.set_colorkey(old_c)
+  img_copy.blit(surf, (0,0))
+  return img_copy
+
+def pallete_swap_imgs(path, color_map, color_key=(0,0,0), scale=0, scale_coords = None):
+  images = []
+  for img_name in sorted(os.listdir(BASE_IMG_PATH + path)):
+    img = load_img(path + "/" + img_name, color_key=color_key, scale=scale, scale_coords=scale_coords)
+    for item in color_map:
+      img = pallete_swap(img, item[0], item[1])
+    img.set_colorkey((0,0,0,0))
+    images.append(img)
+  return images 
+
+
 #load a spritesheet
 def load_spritesheet(path, number_of_frames, scale = 0, color_key = (0,0,0), scale_coords = None):
   # sheet = pygame.image.load(BASE_IMG_PATH + path).convert_alpha()
