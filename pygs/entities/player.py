@@ -225,7 +225,7 @@ class Player(PhysicsEntity):
     
     def dash(self, joystick = None):
         if self.game.dead <= 0:
-            if (self.dashes and self.air_time > 1) or (self.dashes and self.wall_slide):
+            if (self.dashes) or (self.dashes and self.wall_slide):
                 self.game.sfx['dash'].play()
                 if joystick:
                     joystick.rumble(0, 0.6, 200)

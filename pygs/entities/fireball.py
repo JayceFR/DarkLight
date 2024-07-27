@@ -1,8 +1,9 @@
 import pygame, random, math
 
 class Fireball():
-  def __init__(self, pos, box = False, move_speed=5, cooldown = 10) -> None:
+  def __init__(self, game, pos, box = False, move_speed=5, cooldown = 10) -> None:
     self.pos = list(pos)
+    self.game = game
     self.radius = 30
     self.cycle = 15
     self.box = box
@@ -14,10 +15,12 @@ class Fireball():
     self.last_update = 0
     self.angle = 0
     self.cooldown = cooldown
+    self.animation = self.game.assets['fireball'].copy()
   
   def render(self, surf, offset):
-    pygame.draw.circle(surf, (255,0,0), (self.pos[0] - offset[0], self.pos[1] - offset[1]), self.radius)
-    pygame.draw.rect(surf, (0,0,255), (self.rect[0] - offset[0], self.rect[1] - offset[1], self.rect[2], self.rect[3]))
+    # pygame.draw.circle(surf, (255,0,0), (self.pos[0] - offset[0], self.pos[1] - offset[1]), self.radius)
+    # pygame.draw.rect(surf, (0,0,255), (self.rect[0] - offset[0], self.rect[1] - offset[1], self.rect[2], self.rect[3]))
+    surf.blit(self.animation.img(), (self.pos[0] - offset[0], self.pos[1]- offset[1]))
   
   def update(self, time):
     if time - self.last_update > self.cooldown:
@@ -34,4 +37,5 @@ class Fireball():
       self.pos[1] += math.sin(math.radians(self.angle)) * self.move_speed
     
     self.rect = pygame.rect.Rect(self.pos[0] - self.radius//2 - 1, self.pos[1] - self.radius//2 - 1, self.radius - 1, self.radius - 1)
+    self.animation.update()
 

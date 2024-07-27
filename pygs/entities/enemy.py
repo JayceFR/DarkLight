@@ -73,7 +73,7 @@ class Projectile(PhysicsEntity):
     self.img = pygame.transform.rotate(img, math.degrees(angle_of_rot))
     self.alive = True
     self.arot = angle_of_rot
-    self.velocity = init_velocity
+    self.velocity = list(init_velocity)
     self.timer = 0
   
   def update(self, tilemap, movement=(0,0), dt=1):
@@ -92,13 +92,13 @@ class Projectile(PhysicsEntity):
 
   
 class EnemyManager():
-  def __init__(self, game, locs, size) -> None:
+  def __init__(self, game, e_locs, size) -> None:
     self.game = game
     self.enemies = []
     self.projectiles = []
     self.positive_range = [0.2, 0.3, 0, 0, 0.5, 0.5, 0.7]
     self.negative_range = [-0.2, -0.3, 0, 0, -0.5, -0.5, -0.7]
-    for loc in locs:
+    for loc in e_locs:
       self.enemies.append(Enemy(game, loc, size, self.game.assets["pistol"]))
   
   def update(self, tilemap, display, scroll, dt):
@@ -131,8 +131,8 @@ class EnemyManager():
               xrange = self.negative_range
             if nvec[1] < 0:
               yrange = self.negative_range
-            nvec[0] = nvec[0] + random.choice(xrange) * 20
-            nvec[1] = nvec[1] + random.choice(yrange) * 20
+            nvec[0] = (nvec[0] + random.choice(xrange)) * 20
+            nvec[1] = (nvec[1] + random.choice(yrange)) * 20
             self.projectiles.append(Projectile(self.game, 'bullet', (enemy[0], enemy[1]), (self.game.assets['bullet'].get_width(), self.game.assets['bullet'].get_height()), self.game.assets['bullet'], nvec, enemy.target_angle))
             for x in range(4):
               self.game.sparks.append(Spark((enemy[0], enemy[1]),random.random() + enemy.target_angle - math.pi, 2 + random.random()))
@@ -143,10 +143,10 @@ class EnemyManager():
       else:
         projectile.update(tilemap, (0,0), dt)
         projectile.render(display, scroll)
-        if abs(self.game.player.dashing[1]) < 30 and abs(self.game.player.dashing[0]) < 30 and projectile.rect().colliderect(self.game.player.rect()):
+        if abs(self.game.player.dashing[1]) < 1 and abs(self.game.player.dashing[0]) < 1 and projectile.rect().colliderect(self.game.player.rect()):
           self.projectiles.remove(projectile)
           self.game.dead += 1
-          self.game.screenshake = max(16, self.game.screenshake)
+          self.game.screenshake = max(24, self.game.screenshake)
           for x in range(30):
             angle = random.random() * math.pi * 2
             speed = random.random() * 5

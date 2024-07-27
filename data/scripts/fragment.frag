@@ -8,6 +8,7 @@ uniform sampler2D noise_tex1;
 uniform sampler2D noise_tex2;
 uniform float itime;
 uniform float darkness;
+uniform bool jekyll;
 
 uniform vec2 cam_scroll;
 
@@ -48,8 +49,12 @@ void foreground(){
     f_color = tex_color;
     float depth = seamlessNoise(px_uvs2  + scroll * itime * 2.6 , 16.0, noise_tex1) * seamlessNoise(px_uvs2  + scroll2 * itime * 0.3, 15.0, noise_tex2) ;
     float depth2 = seamlessNoise(px_uvs3  + scroll3 * sin(itime) * 0.6 * cos(itime) * 0.6 , 16.0, noise_tex1) * seamlessNoise(px_uvs3  + scroll4 * cos(itime) * 0.6, 16.0, noise_tex1) ;
-    vec3 fog_color = vec3(0.15,0.14,0.35);
-    vec3 fog_color2 = vec3(0.1, 0.1, 0.3);
+    vec3 fog_color = vec3(0.35,0.14,0.15);
+    vec3 fog_color2 = vec3(0.3, 0.1, 0.1);
+    if (jekyll == true){
+        fog_color = vec3(0.15,0.14,0.35);
+        fog_color2 = vec3(0.1, 0.1, 0.3);
+    }    
     float fogFactor = exp(-0.3 + depth);
     if (depth < 0.5){
         f_color = vec4(mix(fog_color, f_color.rgb, fogFactor), 1.0);
@@ -64,8 +69,27 @@ void foreground(){
     }
 }
 
+void overlay_frag(){
+    //f_color = vec4(texture(tex, uvs).rgb ,1.0);
+    vec2 px_uvs = vec2(floor(uvs.x * 320) / 320, floor(uvs.y * 210) / 210);
+    float center_dis = distance(uvs, vec2(0.5,0.5));
+    float noise_val = center_dis + texture(noise_tex1, vec2(px_uvs.x * 1.52 * 2 + itime * 0.001, px_uvs.y * 2)).r * 0.2;
+    vec4 dark = vec4(0.1, 0.0, 0.0, 1.0);
+    float darkness = max(0, noise_val - (0.9 - 0.2)) * 10;
+    float vignette = max(0, center_dis * center_dis - 0.5) * 0;
+    darkness += center_dis + vignette;
+    f_color = darkness * dark + (1 - darkness) * f_color;
+    vec4 ui_color = texture(ui_tex, uvs);
+    if (ui_color.a != 0){
+        f_color = ui_color;
+    }
+}
+
 
 
 void main(){
     foreground();
+    if (jekyll == false){
+        overlay_frag();
+    }
 }

@@ -83,6 +83,8 @@ class Game():
       'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
       'potion' : pg.load_img('ui/potion.png', scale=5),
       'skull' : pg.load_img('ui/skull.png', scale=5),
+      'fireball': pg.Animation(pg.load_imgs('ui/fireball', color_key=(0,0,0), scale=0.2), img_dur=3),
+      'heart': pg.load_img('ui/heart.png', scale=1)
     }
 
     self.sfx = {
@@ -94,6 +96,7 @@ class Game():
       'dash': pygame.mixer.Sound('./data/music/dash.wav'),
       'attack' : pygame.mixer.Sound('./data/music/attack.wav'),
       'run' : pygame.mixer.Sound('./data/music/run.wav'),
+      'death': pygame.mixer.Sound('./data/music/death.wav')
     }
 
     self.sfx['ambience'].set_volume(0.05)
@@ -103,6 +106,7 @@ class Game():
     self.sfx['run'].set_volume(0.5)
     self.sfx['dash'].set_volume(0.3)
     self.sfx['attack'].set_volume(0.3)
+    self.sfx['death'].set_volume(0.2)
 
     self.hud = pg.ui.Hud(self)
 
@@ -142,7 +146,7 @@ class Game():
 
     # self.player.who = level[1]
 
-    self.player.update_who("j")
+    self.player.update_who("h")
 
     if self.player.who == "j":
       self.font = pygame.font.Font('./data/font/munro.ttf', 20)
@@ -179,6 +183,7 @@ class Game():
     self.flows = []
     self.machines = []
     self.ghost = []
+    self.ghost_locs = []
 
     self.sparks = []
 
@@ -196,7 +201,7 @@ class Game():
       elif spawner['variant'] == 5:
         self.machines.append(pg.entities.ArrowManager(spawner['pos'], self))
       elif spawner['variant'] == 6:
-        self.ghost.append(pg.entities.Ghost(self, spawner['pos'], (self.assets['ghost'].get_width(), self.assets['ghost'].get_height()) ))
+        self.ghost_locs.append(spawner['pos'])
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -237,6 +242,9 @@ class Game():
     self.enemy = pg.entities.EnemyManager(self, self.enemy_locs, (20 * 0.8,38 * 0.8))
     self.screenshake = 0
 
+    for loc in self.ghost_locs:
+      self.ghost.append(pg.entities.Ghost(self, loc, (self.assets['ghost'].get_width(), self.assets['ghost'].get_height()), self.enemy ))
+
     self.true_scroll = [0,0]
     self.full_screen = False
     self.fire_particles = []
@@ -249,12 +257,14 @@ class Game():
     self.dead = -3
     self.transition = -30
 
-    self.fireball = pg.entities.Fireball((295,154))
+    self.fireball = pg.entities.Fireball(self, (295,154))
 
   @pg.pygs
   def run(self):
       self.clock.tick(60)
       if self.dead > 0:
+        if self.dead == 1:
+          self.sfx['death'].play()
         self.dead += 1
         if self.dead >= 50:
           self.transition = min(self.transition + 1, 30)
@@ -292,6 +302,11 @@ class Game():
             self.movement[0] = True
           if controls['right']:
             self.movement[1] = True
+      
+      #heart
+      if self.dead <= 0:
+        for x in range(abs(self.dead) + 1):
+          self.ui_display.blit(self.assets['heart'], (600 - x * 20, 20))
 
       self.true_scroll[0] += (self.player.rect().x - self.true_scroll[0] - 1280//4) / 5
       self.true_scroll[1] += (self.player.rect().y - self.true_scroll[1] - 720//4) / 20
@@ -316,7 +331,7 @@ class Game():
         machine.render(self.display, self.scroll)
       
       for ghost in self.ghost:
-        ghost.update(self.tilemap)
+        ghost.update((self.player.rect().x, self.player.rect().y))
         ghost.render(self.display, self.scroll)
       
       for arrow in self.arrows.copy():
@@ -325,7 +340,7 @@ class Game():
         else:
           arrow.update(self.tilemap, (0,0), self.dt, self.gust.wind())
           arrow.render(self.display, self.scroll)
-          if arrow.rect().colliderect(self.player.rect()) and abs(self.player.dashing[1]) < 30 and abs(self.player.dashing[0]) < 30:
+          if arrow.rect().colliderect(self.player.rect()) and abs(self.player.dashing[1]) < 1 and abs(self.player.dashing[0]) < 1:
             arrow.alive = False
             self.screenshake = max(16, self.screenshake)
             for x in range(30):

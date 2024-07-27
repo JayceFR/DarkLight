@@ -44,7 +44,11 @@ def pygs(function):
       screen_shake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2 )
       self.screen.blit(surf, screen_shake_offset)
       uniform = {'noise_tex1': self.noise_img1, 'noise_tex2' : self.noise_img2, 'tex': self.screen, 'ui_tex' : self.ui_display}
-      variables = {'itime' : time.time() - start_time, 'cam_scroll': tuple(list(self.scroll)), 'darkness': self.darkness}
+      if self.player.who == "h":
+        jek = 0
+      else:
+        jek = 1
+      variables = {'itime' : time.time() - start_time, 'cam_scroll': tuple(list(self.scroll)), 'darkness': self.darkness, "jekyll": jek}
       self.shader_obj.draw(uniform, variables)
       pygame.display.flip()
       run = self.hud.get_controls()['run']
