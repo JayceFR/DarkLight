@@ -95,6 +95,11 @@ class Hud():
                     if self.obj.__class__.__name__ == "Game" and self.obj.dead <= 0:
                         self.obj.player.dash()
                 if event.key in key_controls["pickup"]:
+                    if self.obj.__class__.__name__ == "Game":
+                        if self.obj.player.who == "j":
+                            self.obj.player.update_who("h")
+                        else:
+                            self.obj.player.update_who("j")
                     if self.obj.__class__.__name__ == "Game" and self.obj.player.who == "j":
                         if self.obj.collected == False:
                             if self.obj.player.rect().collidepoint(self.obj.buried_point[0], self.obj.buried_point[1]):

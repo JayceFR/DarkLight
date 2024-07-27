@@ -75,9 +75,9 @@ void overlay_frag(){
     float center_dis = distance(uvs, vec2(0.5,0.5));
     float noise_val = center_dis + texture(noise_tex1, vec2(px_uvs.x * 1.52 * 2 + itime * 0.001, px_uvs.y * 2)).r * 0.2;
     vec4 dark = vec4(0.1, 0.0, 0.0, 1.0);
-    float darkness = max(0, noise_val - (0.9 - 0.2)) * 10;
+    float darkness = max(0, noise_val - (0.7)) * 10;
     float vignette = max(0, center_dis * center_dis - 0.5) * 0;
-    darkness += center_dis + vignette;
+    // darkness += center_dis + vignette;
     f_color = darkness * dark + (1 - darkness) * f_color;
     vec4 ui_color = texture(ui_tex, uvs);
     if (ui_color.a != 0){

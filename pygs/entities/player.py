@@ -260,3 +260,4 @@ class Player(PhysicsEntity):
     def update_who(self, to):
         self.who = to
         self.type = self.who + "player"
+        self.animation = self.game.assets[self.type + '/'+ self.action].copy()

@@ -16,6 +16,8 @@ class Ghost():
     self.movement_speed = 5
     self.attacking = 0
     self.alive = True
+    self.health = 100
+    self.rect = pygame.rect.Rect(pos[0], pos[1], size[0], size[1])
     self.vec_list = [(1,0), (-1,0), (0,1), (0,-1), (0.5, 0.5), (-0.5, 0.5), (0.5, -0.5), (-0.5, -0.5)]
   
   def update(self, player_pos = (0,0), dt=1):
@@ -47,6 +49,20 @@ class Ghost():
           self.e_manager.projectiles.append(Projectile(self.game, 'bullet', [self.pos[0] + self.size[0] //2 , self.pos[1] + self.size[1] // 2], (self.game.assets['bullet'].get_width(), self.game.assets['bullet'].get_height()), self.game.assets['bullet'], vec_copy, self.target_angle ))
 
     self.attacking = max(0, self.attacking - 1)
+    self.rect = pygame.rect.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
+
+    #check for collisions with the player
+    if self.game.player.hit and self.game.player.get_hit_rect().colliderect(self.rect):
+      self.game.screenshake = 14
+      for x in range(5):
+        angle = random.random() * math.pi * 2
+        self.game.sparks.append(Spark(self.rect.center, angle, 3 + random.random()))
+      self.health -= 1
+    
+    if self.health <= 0:
+      self.game.sparks.append(Spark(self.rect.center, 0, 5 + random.random()))
+      self.game.sparks.append(Spark(self.rect.center, math.pi, 5 + random.random()))
+      self.alive = False
   
   def render(self, surf, offset=(0,0)):
     surf.blit(self.game.assets[self.type], (self.pos[0] - offset[0], self.pos[1] - offset[1]))

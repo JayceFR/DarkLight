@@ -146,7 +146,7 @@ class Game():
 
     # self.player.who = level[1]
 
-    self.player.update_who("h")
+    self.player.update_who("j")
 
     if self.player.who == "j":
       self.font = pygame.font.Font('./data/font/munro.ttf', 20)
@@ -330,9 +330,12 @@ class Game():
         machine.update(0.01)
         machine.render(self.display, self.scroll)
       
-      for ghost in self.ghost:
-        ghost.update((self.player.rect().x, self.player.rect().y))
-        ghost.render(self.display, self.scroll)
+      for ghost in self.ghost.copy():
+        if ghost.alive:
+          ghost.update((self.player.rect().x, self.player.rect().y))
+          ghost.render(self.display, self.scroll)
+        else:
+          self.ghost.remove(ghost)
       
       for arrow in self.arrows.copy():
         if not arrow.alive:
