@@ -200,7 +200,7 @@ class Player(PhysicsEntity):
                 
     
     def attack(self):
-        if self.game.dead <= 0 and self.who != "j":
+        if self.game.dead <= 0 :
             if self.hit_timer >= 40:
                 self.game.sfx['attack'].play()
                 self.hit_timer = 0 
@@ -245,14 +245,16 @@ class Player(PhysicsEntity):
                         self.dash_dir[0] = min(self.dash_dir[0], 0)
                 if not self.dashing[1]:
                     if self.game.hud.get_controls()["up"] :
-                        self.game.sfx['dash'].play()
+                        if self.dashing[0] == 0:
+                            self.game.sfx['dash'].play()
                         self.dashing[1] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
                         self.dash_dir[1] = -8
                     else:
                         self.dash_dir[1] = max(self.dash_dir[1], 0)
                     if self.game.hud.get_controls()["down"]:
-                        self.game.sfx['dash'].play()
+                        if self.dashing[0] == 0:
+                            self.game.sfx['dash'].play()
                         self.dashing[1] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
                         self.dash_dir[1] = 8

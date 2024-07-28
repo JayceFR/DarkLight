@@ -3,9 +3,9 @@ from pygs.ui.spark import Spark
 import random, math
 
 class Arrow(PhysicsEntity):
-  def __init__(self, game, e_type, pos, size, gravity=False):
+  def __init__(self, game, e_type, pos, size, gravity=False, velocity=[0,4]):
     super().__init__(game, e_type, pos, size, gravity)
-    self.velocity = [0,4]
+    self.velocity = velocity.copy()
     self.timer = 0
     self.alive = True
     self.img = self.game.assets[e_type]
@@ -20,10 +20,10 @@ class Arrow(PhysicsEntity):
       for x in range(4):
         self.game.sparks.append(Spark((self.pos[0] + self.size[0], self.pos[1] + self.size[1]),random.random() * -math.pi, 2 + random.random()))
       self.alive = False
-    if self.velocity[0] > 0:
-      self.velocity[0] = max(self.velocity[0] - 0.1, 0)
-    else:
-      self.velocity[0] = min(self.velocity[0] + 0.1, 0)
+    # if self.velocity[0] > 0:
+    #   self.velocity[0] = max(self.velocity[0] - 0.1, 0)
+    # else:
+    #   self.velocity[0] = min(self.velocity[0] + 0.1, 0)
   
   def render(self, surf, offset = (0,0)):
     surf.blit(self.img, (self.pos[0] - offset[0], self.pos[1] - offset[1]))

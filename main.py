@@ -184,10 +184,11 @@ class Game():
     self.ghost = []
     self.ghost_locs = []
     self.fireballs = []
+    self.dimension_loc = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 8)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -202,6 +203,8 @@ class Game():
         self.machines.append(pg.entities.ArrowManager(spawner['pos'], self))
       elif spawner['variant'] == 6:
         self.ghost_locs.append(spawner['pos'])
+      elif spawner['variant'] == 7:
+        self.dimension_loc.append(spawner['pos'])
       elif spawner['variant'] == 8:
         self.fireballs.append(pg.entities.Fireball(self, spawner['pos'], [1024 * 0.1, 1024 * 0.1 ] ,move_speed=5, cooldown=10))
     
@@ -209,6 +212,11 @@ class Game():
     self.water_manager.load(self.water_pos, self)
     for fire_pos in self.tilemap.extract([('decor', 4),], True):
       self.fire_pos.append(fire_pos)
+
+    #set the dimension
+    if len(self.dimension_loc) == 2:
+      self.min_dimension = [min(self.dimension_loc[0][0], self.dimension_loc[1][0]) // 16 + 2, min(self.dimension_loc[0][1], self.dimension_loc[1][1]) // 16 + 1]
+      self.max_dimension = [max(self.dimension_loc[0][0], self.dimension_loc[1][0]) // 16 - 1, (max(self.dimension_loc[0][1], self.dimension_loc[1][1]) // 16) ]
 
     self.glow_img = pygame.Surface((255,255))
     self.glow_img.fill((174*0.2, 226*0.2, 255*0.3))
@@ -260,6 +268,7 @@ class Game():
     self.transition = -30
 
     self.polysparks = []
+    self.in_flow = False
 
     # self.fireball = pg.entities.Fireball(self, (295,154))
 
@@ -315,8 +324,8 @@ class Game():
       self.true_scroll[0] += (self.player.rect().x - self.true_scroll[0] - 1280//4) / 5
       self.true_scroll[1] += (self.player.rect().y - self.true_scroll[1] - 720//4) / 20
 
-      self.true_scroll[0] = max(0*self.tilemap.tile_size, min( self.dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
-      self.true_scroll[1] = max(0 * self.tilemap.tile_size, min(self.dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
+      self.true_scroll[0] = max(self.min_dimension[0]*self.tilemap.tile_size, min( self.max_dimension[0] * self.tilemap.tile_size - self.display.get_width(), self.true_scroll[0] ))
+      self.true_scroll[1] = max(self.min_dimension[1]* self.tilemap.tile_size, min(self.max_dimension[1] * self.tilemap.tile_size - self.display.get_height(), self.true_scroll[1] ))
 
       self.scroll = self.true_scroll.copy()
       self.scroll[0] = int(self.scroll[0])
@@ -347,8 +356,9 @@ class Game():
         else:
           arrow.update(self.tilemap, (0,0), self.dt, self.gust.wind())
           arrow.render(self.display, self.scroll)
-          if arrow.rect().colliderect(self.player.rect()) and abs(self.player.dashing[1]) < 1 and abs(self.player.dashing[0]) < 1:
+          if arrow.rect().colliderect(self.player.rect()) and abs(self.player.dashing[1]) < 1 and abs(self.player.dashing[0]) < 1 and not self.in_flow:
             arrow.alive = False
+            self.dead += 1
             self.screenshake = max(16, self.screenshake)
             for x in range(30):
               angle = random.random() * math.pi * 2
@@ -358,11 +368,13 @@ class Game():
       
       self.enemy.update(self.tilemap, self.display, self.scroll, self.dt)
 
+      self.in_flow = False
       for flow in self.flows.copy():
         flow.render(self.display, self.scroll)
-        if random.random() < 0.005:
+        if random.random() < 0.05 and pg.distance_between(flow.pos, (self.player.rect()[0], self.player.rect()[1])) <= 350 and not self.in_flow:
           flow.shoot()
         if flow.rect.colliderect(self.player.rect()):
+          self.in_flow = True
           self.player.pos[0] = flow.rect.center[0] - 9
           self.player.pos[1] = flow.rect.center[1] - 9
           #give them an extra dash if they don't have one

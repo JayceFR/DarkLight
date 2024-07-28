@@ -17,7 +17,9 @@ class Flow():
     surf.blit(self.img, (self.pos[0] - offset[0], self.pos[1] - offset[1]))
   
   def shoot(self):
-    self.game.arrows.append(Arrow(self.game, self.e_type, [self.pos[0] + 15, self.pos[1] + 28], (self.game.assets[self.e_type].get_width(), self.game.assets[self.e_type].get_height()), False))
+    self.game.arrows.append(Arrow(self.game, self.e_type, [self.pos[0] + 35, self.pos[1] + 13], (self.game.assets[self.e_type].get_width(), self.game.assets[self.e_type].get_height()), False, velocity=[7,0]))
+    self.game.arrows.append(Arrow(self.game, self.e_type, [self.pos[0] - 5, self.pos[1] + 13], (self.game.assets[self.e_type].get_width(), self.game.assets[self.e_type].get_height()), False, velocity=[-7,0]))
+
     
 
 

@@ -45,11 +45,13 @@ class TileMap:
     def physics_around(self, pos):
         rects = []
         type_of_rect = []
+        variant_of_rect = []
         for tile in self.tiles_around(pos):
             if tile['type'] in PHYSICS_TILES:
                 rects.append(pygame.Rect(tile['pos'][0] * self.tile_size, tile['pos'][1] * self.tile_size, self.tile_size, self.tile_size))
                 type_of_rect.append(tile['type'])
-        return rects, type_of_rect
+                variant_of_rect.append(tile['variant'])
+        return rects, type_of_rect, variant_of_rect
 
     def autotile(self):
         for loc in self.tilemap:

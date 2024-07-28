@@ -37,10 +37,10 @@ class PhysicsEntity:
         frame_movement = (movement[0] + self.velocity[0] + self.momentum[0] / self.mass, movement[1] + self.velocity[1] + self.momentum[1] / self.mass)
         self.pos[0] += frame_movement[0] * self.speed[0] * dt
         entity_rect = self.rect()
-        prects, type_of_rect = tilemap.physics_around(self.pos)
+        prects, type_of_rect, variant_of_rect = tilemap.physics_around(self.pos)
         for pos, rect in enumerate(prects):
             if entity_rect.colliderect(rect):
-                if self.type == "player" and type_of_rect[pos] == "spike" and self.game.dead <= 0:
+                if (self.type == "jplayer" or self.type == "hplayer") and type_of_rect[pos] == "spike" and self.game.dead <= 0 and variant_of_rect[pos] in {2,3}:
                     #player is dead
                     self.game.dead = 1
                     for x in range(40):
@@ -58,10 +58,10 @@ class PhysicsEntity:
         
         self.pos[1] += frame_movement[1] * self.speed[1] * dt
         entity_rect = self.rect()
-        prects, type_of_rect = tilemap.physics_around(self.pos)
+        prects, type_of_rect, variant_of_rect = tilemap.physics_around(self.pos)
         for pos, rect in enumerate(prects):
             if entity_rect.colliderect(rect):
-                if self.type == "player" and type_of_rect[pos] == "spike" and self.game.dead <= 0:
+                if (self.type == "jplayer" or self.type == "hplayer") and type_of_rect[pos] == "spike" and self.game.dead <= 0 and variant_of_rect[pos] in {0,1}:
                     #player is dead
                     self.game.dead = 1
                     for x in range(30):
