@@ -28,6 +28,11 @@ def pygs(function):
         particle.render(self.display, offset=self.scroll)
         if kill:
           self.particles.remove(particle)
+      
+      #polysparks
+      for poly in self.polysparks:
+        poly.move(1)
+        poly.draw(self.display)
 
       if self.transition:
         transisiton_surf = pygame.Surface(self.display.get_size())

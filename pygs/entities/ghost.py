@@ -16,6 +16,7 @@ class Ghost():
     self.movement_speed = 5
     self.attacking = 0
     self.alive = True
+    self.flip = False
     self.health = 100
     self.rect = pygame.rect.Rect(pos[0], pos[1], size[0], size[1])
     self.vec_list = [(1,0), (-1,0), (0,1), (0,-1), (0.5, 0.5), (-0.5, 0.5), (0.5, -0.5), (-0.5, -0.5)]
@@ -34,6 +35,11 @@ class Ghost():
     if self.vec[0] > 0:
       if self.vec[1] < 0:
         self.target_angle = -abs_angle
+    
+    if self.pos[0] < player_pos[0]:
+      self.flip = True
+    else:
+      self.flip = False
     
     self.vec[1] *= -1
     nvec = normalise(self.vec)
@@ -65,4 +71,4 @@ class Ghost():
       self.alive = False
   
   def render(self, surf, offset=(0,0)):
-    surf.blit(self.game.assets[self.type], (self.pos[0] - offset[0], self.pos[1] - offset[1]))
+    surf.blit(pygame.transform.flip(self.game.assets[self.type], self.flip, False), (self.pos[0] - offset[0], self.pos[1] - offset[1]))

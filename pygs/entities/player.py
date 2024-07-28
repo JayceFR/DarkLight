@@ -226,17 +226,18 @@ class Player(PhysicsEntity):
     def dash(self, joystick = None):
         if self.game.dead <= 0:
             if (self.dashes) or (self.dashes and self.wall_slide):
-                self.game.sfx['dash'].play()
                 if joystick:
                     joystick.rumble(0, 0.6, 200)
                 if not self.dashing[0]:
                     if self.game.hud.get_controls()["left"] :
+                        self.game.sfx['dash'].play()
                         self.dashing[0] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
                         self.dash_dir[0] = -8
                     else:
                         self.dash_dir[0] = max(self.dash_dir[0], 0)
                     if self.game.hud.get_controls()["right"]:
+                        self.game.sfx['dash'].play()
                         self.dashing[0] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
                         self.dash_dir[0] = 8
@@ -244,12 +245,14 @@ class Player(PhysicsEntity):
                         self.dash_dir[0] = min(self.dash_dir[0], 0)
                 if not self.dashing[1]:
                     if self.game.hud.get_controls()["up"] :
+                        self.game.sfx['dash'].play()
                         self.dashing[1] = -8
                         self.game.screenshake = max(20, self.game.screenshake)
                         self.dash_dir[1] = -8
                     else:
                         self.dash_dir[1] = max(self.dash_dir[1], 0)
                     if self.game.hud.get_controls()["down"]:
+                        self.game.sfx['dash'].play()
                         self.dashing[1] = 8
                         self.game.screenshake = max(20, self.game.screenshake)
                         self.dash_dir[1] = 8

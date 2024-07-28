@@ -8,9 +8,8 @@ pygame.init()
 '''
 TODO 
 Map levels
-Ball of fire animation
-changing to hyde
-overheat circle blasts
+If we have time then have an attack cooldown which does 
+allow the player to get killed in a second
 '''
 
 class Game():
@@ -83,8 +82,8 @@ class Game():
       'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
       'potion' : pg.load_img('ui/potion.png', scale=5),
       'skull' : pg.load_img('ui/skull.png', scale=5),
-      'fireball': pg.Animation(pg.load_imgs('ui/fireball', color_key=(0,0,0), scale=0.2), img_dur=3),
-      'heart': pg.load_img('ui/heart.png', scale=1)
+      'fireball': pg.Animation(pg.load_imgs('ui/fireball', color_key=(0,0,0), scale=0.1), img_dur=3),
+      'heart': pg.load_img('ui/heart.png', scale=1),
     }
 
     self.sfx = {
@@ -184,10 +183,11 @@ class Game():
     self.machines = []
     self.ghost = []
     self.ghost_locs = []
+    self.fireballs = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 8)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -202,6 +202,8 @@ class Game():
         self.machines.append(pg.entities.ArrowManager(spawner['pos'], self))
       elif spawner['variant'] == 6:
         self.ghost_locs.append(spawner['pos'])
+      elif spawner['variant'] == 8:
+        self.fireballs.append(pg.entities.Fireball(self, spawner['pos'], [1024 * 0.1, 1024 * 0.1 ] ,move_speed=5, cooldown=10))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -257,7 +259,9 @@ class Game():
     self.dead = -3
     self.transition = -30
 
-    self.fireball = pg.entities.Fireball(self, (295,154))
+    self.polysparks = []
+
+    # self.fireball = pg.entities.Fireball(self, (295,154))
 
   @pg.pygs
   def run(self):
@@ -372,11 +376,23 @@ class Game():
       self.player.render(self.display, self.scroll)
       self.display.blit(self.pglow_img, (self.player.rect().center[0] - 255 //2 - self.scroll[0] , self.player.rect().center[1] - 255//2 - self.scroll[1] ), special_flags=BLEND_RGBA_ADD)
       
-      self.fireball.update(time)
-      self.fireball.render(self.display, self.scroll)
+      for fireball in self.fireballs:
+        fireball.update(time)
+        fireball.render(self.display, self.scroll)
+        if fireball.rect.colliderect(self.player.rect()) and abs(self.player.dashing[0]) < 2 and abs(self.player.dashing[1]) < 2:
+          self.screenshake = max(16, self.screenshake)
+          if time - fireball.last_attack_update > fireball.thingy_cooldown:
+            self.dead += 1
+            fireball.last_attack_update = time
+            for x in range(30):
+              angle = random.random() * math.pi * 2
+              speed = random.random() * 5
+              self.sparks.append(pg.ui.Spark(self.player.rect().center, angle, 2 + random.random(), (236,123,0)))
+              self.polysparks.append(pg.ui.PolySpark([self.player.rect().centerx - self.scroll[0] ,self.player.rect().centery - self.scroll[1]], math.radians(random.randint(0,360)), random.randint(2,3), (255,random.randint(100,123),0), 2, 2))
 
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)
+      
 
       self.water_manager.update(self)
 
