@@ -10,6 +10,9 @@ TODO
 Map levels
 If we have time then have an attack cooldown which does 
 allow the player to get killed in a second
+
+Transition sound effect
+Hit sound effect
 '''
 
 class Game():
@@ -66,15 +69,15 @@ class Game():
       'jplayer/jump': pg.Animation(pg.load_imgs('entities/player/jump', scale=1, color_key=(0,0,0))),
       'hplayer/jump': pg.Animation(pg.load_imgs('entities/player/hjump', scale=1, color_key=(0,0,0))),
       'jplayer/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
-      'hplayer/hit' : pg.Animation(pg.load_imgs('entities/player/hit', scale=1), img_dur=6),
+      'hplayer/hit' : pg.Animation(pg.load_imgs('entities/player/hhit', scale=1), img_dur=6),
       'jplayer/climb' : pg.Animation(pg.load_imgs('entities/player/climb', scale=1)),
       'hplayer/climb' : pg.Animation(pg.load_imgs('entities/player/hclimb', scale=1)),
       'jplayer/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
-      'hplayer/hit_up': pg.Animation(pg.load_imgs('entities/player/hit_up', scale=1), img_dur=6),
+      'hplayer/hit_up': pg.Animation(pg.load_imgs('entities/player/hhit_up', scale=1), img_dur=6),
       'jplayer/death': pg.Animation(pg.load_imgs('entities/player/death', scale=1), img_dur=6, loop=False),
       'hplayer/death': pg.Animation(pg.load_imgs('entities/player/hdeath', scale=1), img_dur=6, loop=False),
       'jplayer/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
-      'hplayer/hit_down': pg.Animation(pg.load_imgs('entities/player/hit_down', scale=1), img_dur=6),
+      'hplayer/hit_down': pg.Animation(pg.load_imgs('entities/player/hhit_down', scale=1), img_dur=6),
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False),
       'player/speak' : pg.Animation(pg.load_imgs('entities/player/speak', scale=5), img_dur=16),
       'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
@@ -118,48 +121,46 @@ class Game():
     self.dt = 0
 
     self.tilemap = pg.TileMap(self, tile_size=16)
-    self.curr_level = 0 
+    self.curr_level = 1 
+    self.curr_world = 1
 
-    self.levels = [
-      ["map", "j", ["These Hoodie Reddies constantly bully us", "Oh yeah i fugured it out", "What harm did we do? Hope my dear friend is safe", "Only if we had the strength to face them.", "Yeah, i feel helpless and abandoned"], 'eyeball', (586, 602)],
-      ["1", "h"],
-      ["map", "j", ["Oh praise the lord, You brought the second ingredient", "Thanks I guess... It is not too dangerous out there", "Wait do you not know", "Umm... What", "Yesterday someone took down some of the red hoodies", "Oh a saviour finally", "Take some rest now, Good night", "Good night"], 'potion', (137, 170)], 
-      ["2", "h"],
-      ["map", "j", ["Thanks for bringing the last ingredient!", "Your welcome", "You have done a really good job but I can offer nothing in return except this shed", "That's more than enough for me, now the real threat arises",], 'skull', (383, 874)], 
-      ["3", "h"],
-    ]
+    self.world = {
+      #  [max_level, list_of_texts]
+      1: [2, ["bla bla bla", "hola"]]
+    }
 
     # self.levels = [
     #   ["map", "h"]
     # ]
 
     self.load_level(
-      self.levels[self.curr_level]
+      self.world[self.curr_world]
     )
+
+    # self.load_level(level=None, text=self.world[self.curr_world][1])
   
   #level -> [name, j/h, list_of_text]
-  def load_level(self, level):
+  def load_level(self, level=None, text=[]):
     print(level)
-    # self.tilemap.load('data/save/maps/' + level[0] + '.json')
-    self.tilemap.load('./map.json')
+    if level:
+      self.tilemap.load('data/save/maps/world' + str(self.curr_world) + "/" + str(self.curr_level) + '.json')
+    else:
+      self.tilemap.load('./map.json')
 
     # self.player.who = level[1]
 
     self.player.update_who("j")
 
-    if self.player.who == "j":
-      self.font = pygame.font.Font('./data/font/munro.ttf', 20)
-      self.typer = pg.TypeWriter(self.font, (255,255,255), 150,70, 600, 20, None)
-      self.player_talk = self.assets['player/speak'].copy()
-      self.citizen_talk = self.assets['citizen/speak'].copy()
-      self.typer.write(level[2])
-      self.buried_point = level[4]
-      self.img = self.assets[level[3]]
-      self.close_to_point = False
-      self.done_typing = False
-      self.collected = False
-      self.delivered = False
-      self.home_pos = [1025, 938]
+    self.flow_shoot_cooldown = random.randint(800,1200)
+
+    self.font = pygame.font.Font('./data/font/munro.ttf', 20)
+    self.typer = pg.TypeWriter(self.font, (255,255,255), 150,70, 600, 20, None)
+    self.player_talk = self.assets['player/speak'].copy()
+    self.citizen_talk = self.assets['citizen/speak'].copy()
+    self.typer.write(text)
+    self.done_typing = False
+    self.home_pos = [530, 218]
+    self.home_rect = pygame.rect.Rect(self.home_pos[0], self.home_pos[1], 32,16)
 
     self.dimension = [82,61]
 
@@ -185,10 +186,11 @@ class Game():
     self.ghost_locs = []
     self.fireballs = []
     self.dimension_loc = []
+    self.end_rects = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8), ('spawners', 10)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -207,6 +209,8 @@ class Game():
         self.dimension_loc.append(spawner['pos'])
       elif spawner['variant'] == 8:
         self.fireballs.append(pg.entities.Fireball(self, spawner['pos'], [1024 * 0.1, 1024 * 0.1 ] ,move_speed=5, cooldown=10))
+      elif spawner['variant'] == 10:
+        self.end_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 16, 16))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -264,11 +268,14 @@ class Game():
     self.settings_window = False
     self.darkness = 0
 
-    self.dead = -3
+    self.dead = -10
     self.transition = -30
 
     self.polysparks = []
     self.in_flow = False
+
+    self.world_completed = False #Needs to be false
+    self.typing = False
 
     # self.fireball = pg.entities.Fireball(self, (295,154))
 
@@ -282,7 +289,7 @@ class Game():
         if self.dead >= 50:
           self.transition = min(self.transition + 1, 30)
         if self.dead > 80:
-          self.load_level(self.levels[self.curr_level])
+          self.load_level(self.world[self.curr_world])
 
       '''
       REMEMBER TO UNCOMMENT THE BELOW SET OF CODE
@@ -292,9 +299,22 @@ class Game():
       #   if len(self.enemy.enemies) == 0 and len(self.ghost) == 0:
       #     self.transition += 1
 
+      for end_rect in self.end_rects:
+        if end_rect.colliderect(self.player.rect()):
+          self.transition += 1
+
       if self.transition > 30:
         self.curr_level += 1
-        self.load_level(self.levels[self.curr_level])
+        self.dead = -10
+        if self.curr_level > self.world[self.curr_world][0]:
+          #world is completed
+          print("world is completed")
+          self.world_completed = True
+          self.load_level(level=None, text=self.world[self.curr_world][1])
+          # self.curr_level = 1
+          # self.curr_world += 1
+        else:
+          self.load_level(self.world[self.curr_world])
         
       time = pygame.time.get_ticks()
       # print(self.player.rect()[0], self.player.rect()[1])
@@ -308,7 +328,7 @@ class Game():
       self.screenshake = max(0, self.screenshake - 1)
 
       controls = self.hud.get_controls()
-      if self.dead <= 0:
+      if self.dead <= 0 :
         self.movement = [False, False]
         if not self.settings_window:
           if controls['left'] :
@@ -336,7 +356,7 @@ class Game():
       self.flower.update(self.player.rect(), self.display, self.scroll, time, self.gust.wind())
 
       for citizen in self.citizens:
-        citizen.update(self.tilemap, (0,0), self.dt)
+        citizen.update(self.tilemap, (0,0), self.dt, (self.player.rect().centerx, self.player.rect().centery))
         citizen.render(self.display, offset=self.scroll)
       
       for machine in self.machines:
@@ -371,8 +391,6 @@ class Game():
       self.in_flow = False
       for flow in self.flows.copy():
         flow.render(self.display, self.scroll)
-        if random.random() < 0.05 and pg.distance_between(flow.pos, (self.player.rect()[0], self.player.rect()[1])) <= 350 and not self.in_flow:
-          flow.shoot()
         if flow.rect.colliderect(self.player.rect()):
           self.in_flow = True
           self.player.pos[0] = flow.rect.center[0] - 9
@@ -383,8 +401,12 @@ class Game():
           #if player hits remove flow
           if self.player.hit:
             self.flows.remove(flow)
+        if time - flow.last_shoot > self.flow_shoot_cooldown and pg.distance_between(flow.pos, (self.player.rect()[0], self.player.rect()[1])) <= 350 and not self.in_flow:
+          flow.shoot()
+          flow.last_shoot = time
 
-      self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
+      if not self.typing:
+        self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
       self.player.render(self.display, self.scroll)
       self.display.blit(self.pglow_img, (self.player.rect().center[0] - 255 //2 - self.scroll[0] , self.player.rect().center[1] - 255//2 - self.scroll[1] ), special_flags=BLEND_RGBA_ADD)
       
@@ -404,6 +426,29 @@ class Game():
 
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)
+
+      
+      if self.world_completed and self.player.rect().colliderect(self.home_rect):
+        if not self.done_typing:
+          self.typing = True
+          pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
+          self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(350,300))
+          if self.typer.banana_turn % 2 != 0:
+            self.ui_display.blit(self.player_talk.img(), (10,10))
+            self.player_talk.update()
+          else:
+            self.ui_display.blit(self.citizen_talk.img(), (10,10))
+            self.citizen_talk.update()
+        else:
+          self.typing = False
+          #done typing so update the world state 
+          #check for game over
+          self.curr_world += 1
+          self.curr_level = 1
+          self.world_completed = False
+          self.load_level(self.world[self.curr_world])
+      else:
+        self.typing = False
       
 
       self.water_manager.update(self)
@@ -428,34 +473,6 @@ class Game():
 
       self.fireflies.recursive_call(time, self.display, self.scroll, self.dt)
       self.leaf.recursive_call(time, self.display, self.scroll, self.gust.wind(), dt=self.dt)
-
-      if self.player.who == "j":
-        if self.delivered:
-          if not self.done_typing:
-            pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
-            self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(350,300))
-            if self.typer.banana_turn % 2 != 0:
-              self.ui_display.blit(self.player_talk.img(), (10,10))
-              self.player_talk.update()
-            else:
-              self.ui_display.blit(self.citizen_talk.img(), (10,10))
-              self.citizen_talk.update()
-          else:
-            self.transition += 1
-
-        if not self.collected:
-          if self.player.rect().collidepoint(self.buried_point[0], self.buried_point[1]):
-            #draw E
-            img = self.font.render("E To Collect", False, (255,255,255))
-            self.ui_display.blit(img, (500, 330))
-        
-        if self.collected and not self.delivered:
-          if self.player.rect().collidepoint(self.home_pos[0], self.home_pos[1]):
-            img = self.font.render("E To Deliver", False, (255,255,255))
-            self.ui_display.blit(img, (500, 330))
-        
-        if self.collected and not self.delivered:
-          self.ui_display.blit(self.img, (10,10))
 
       self.hud.events(self.settings.controls_keyboard)
       

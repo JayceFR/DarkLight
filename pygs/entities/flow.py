@@ -7,6 +7,7 @@ class Flow():
     self.size = size
     self.game = game
     self.e_type = e_type
+    self.last_shoot = 0
     self.img = self.game.assets['flow']
     self.rect = pygame.rect.Rect(pos[0], pos[1], size[0], size[1])
   
