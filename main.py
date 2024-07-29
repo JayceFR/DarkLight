@@ -81,12 +81,15 @@ class Game():
       'particles/particle' : pg.Animation(pg.load_imgs('particle', scale=2), img_dur=6, loop=False),
       'player/speak' : pg.Animation(pg.load_imgs('entities/player/speak', scale=5), img_dur=16),
       'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
+      'cage' : pg.Animation(pg.load_imgs('entities/bro/cage', scale=1), img_dur=1, loop=False), 
       'ghost' : pg.load_img('ui/ghost.png'),
       'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
       'potion' : pg.load_img('ui/potion.png', scale=5),
       'skull' : pg.load_img('ui/skull.png', scale=5),
       'fireball': pg.Animation(pg.load_imgs('ui/fireball', color_key=(0,0,0), scale=0.1), img_dur=3),
       'heart': pg.load_img('ui/heart.png', scale=1),
+      'flash' : pg.Animation(pg.load_imgs('ui/flash', scale=1), img_dur=5, loop=False),
+      'bro': pg.load_img('entities/bro/bro.png', scale=1)
     }
 
     self.sfx = {
@@ -131,6 +134,7 @@ class Game():
     self.tutorial_text = ["The city of darklight is a mysterious and dangerous place", "But it does look quite beautiful", "Try making it home before its too late", "Too late for what", "For Overheat", "Overheat?", "No one has ever survived the overheat.", "What happens when one is overheated", "Legends has it that one sees the true nature of darklight"]
     level_one_text = ["Oh you have survived the day, I thought you wouldn't", "...", "What brings you here", "Hmm.. hiking", "No one visits the ruins of darklight for hiking, stop lying", "Few days ago my brother visited this place on his geography trip", "Oh yeah I did see some school students, I did warn them ", "He never returned, so I am looking for him ", "I am really sorry, but I believe he is captured by the red hoodies", "The red what?", "They are a ruthless tribe who flourish in this ruined city.", "Oh!!", "They are the ones who cursed this beautiful place with overheat", "Oh it must be them, they captured my little brother", "Enough talk lets take some rest, don't want to get overheated"]
     level_two_text = ["Oh hi there", "I found my brother's cap I believe I am in the right path", "Wait were you just overheated", "Yeah I guess so ", "Only the descendants of the king of shadows can survive in the overheated state", "My great-grandfather was no king of shadows", "Wait is it true that you saw a ghost", "Yeah it almost got me", "The ghosts are the spirits of the lost souls who perished overheated", "Is there a way to restore this place ", "Legend has it that the only true descendent of the king of the shadows can restore this place.", "Oh", "Lest's take some rest now"]
+    self.game_over_text = ["You sacrificed your life for saving your brother and the village", "You are our hero", "We can't thank you enough"]
     self.world = {
       #  [max_level, list_of_texts]
       0: [1, self.tutorial_text],
@@ -171,6 +175,10 @@ class Game():
     self.home_pos = [530, 218]
     self.home_rect = pygame.rect.Rect(self.home_pos[0], self.home_pos[1], 32,16)
 
+    self.game_over_typer =  pg.TypeWriter(self.font, (255,255,255),150,70, 900, 20, None)
+    self.game_over_typer.write(self.game_over_text)
+    self.game_over_typing = False
+
     self.dimension = [82,61]
 
     self.fragment_loc = "./data/scripts/fragment.frag"
@@ -195,10 +203,11 @@ class Game():
     self.dimension_loc = []
     self.end_rects = []
     self.heart_rects = []
+    self.cage_brother_rects = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8), ('spawners', 9), ('spawners', 10)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8), ('spawners', 9), ('spawners', 10), ('spawners', 11)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -221,6 +230,8 @@ class Game():
         self.heart_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 16,16))
       elif spawner['variant'] == 10:
         self.end_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 16, 16))
+      elif spawner['variant'] == 11:
+        self.cage_brother_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 32, 45))
     
     self.water_manager = pg.ui.WaterManager()
     self.water_manager.load(self.water_pos, self)
@@ -290,6 +301,12 @@ class Game():
       self.world_completed = False
     self.typing = False
 
+    self.cage_bro_health = 100
+    self.cage_ani = self.assets['cage'].copy()
+    self.end_scene_time = 0
+
+    self.game_over = False
+
     # self.fireball = pg.entities.Fireball(self, (295,154))
 
   @pg.pygs
@@ -316,7 +333,6 @@ class Game():
         if end_rect.colliderect(self.player.rect()):
           self.transition += 1
       
-      print(self.transition)
 
       if self.transition > 30:
         print("In the transition")
@@ -421,9 +437,10 @@ class Game():
           flow.shoot()
           flow.last_shoot = time
 
-      if not self.typing:
-        self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
-      self.player.render(self.display, self.scroll)
+      if not self.game_over:
+        if not self.typing:
+          self.player.update(self.tilemap, [self.movement[1] - self.movement[0], 0], self.dt, self.gust.wind())
+        self.player.render(self.display, self.scroll)
       self.display.blit(self.pglow_img, (self.player.rect().center[0] - 255 //2 - self.scroll[0] , self.player.rect().center[1] - 255//2 - self.scroll[1] ), special_flags=BLEND_RGBA_ADD)
       
       for fireball in self.fireballs:
@@ -457,21 +474,32 @@ class Game():
         self.display.blit(self.lamp_glow_img, (pos[0] - self.scroll[0] - 17, pos[1] - self.scroll[1] - 10), special_flags=BLEND_RGBA_ADD)
 
       self.gust.update(time)
-
-      for spark in self.sparks.copy():
-        kill = spark.update()
-        spark.render(self.display, self.scroll, self.dt)
-        if kill:
-          self.sparks.remove(spark)
       
-      for rect in self.heart_rects.copy():
-        self.display.blit(self.assets['heart'], (rect[0] - self.scroll[0], rect[1] - self.scroll[1]))
-        if self.dead <= 0 and rect.colliderect(self.player.rect()):
-          self.dead = max(self.dead - 1, self.max_hearts)
-          self.heart_rects.remove(rect)
-          self.sfx['pickup'].play()
-          for x in range(20):
-            self.polysparks.append(pg.ui.PolySpark([self.player.rect().centerx - self.scroll[0] ,self.player.rect().centery - self.scroll[1]], math.radians(random.randint(0,360)), random.randint(2,3), (255,61,137), 2, 2))
+      for rect in self.cage_brother_rects:
+        if self.cage_bro_health > 0:
+          self.display.blit(self.cage_ani.img(), (rect[0] - self.scroll[0], rect[1] - self.scroll[1]))
+          if self.player.hit and self.player.get_hit_rect().colliderect(rect):
+            self.screenshake = max(self.screenshake, 24)
+            self.cage_bro_health -= 0.5
+            for x in range(5):
+              angle = random.random() * math.pi * 2
+              self.sparks.append(pg.ui.Spark(self.player.get_hit_rect().center, angle, 2 + random.random() * 5, (155,178,179)))
+          if self.cage_bro_health > 70:
+            self.cage_ani.frame = 0
+          elif self.cage_bro_health > 40:
+            self.cage_ani.frame = 1
+          else:
+            self.cage_ani.frame = 2
+      
+      if not self.game_over:
+        for rect in self.heart_rects.copy():
+          self.display.blit(self.assets['heart'], (rect[0] - self.scroll[0], rect[1] - self.scroll[1]))
+          if self.dead <= 0 and rect.colliderect(self.player.rect()):
+            self.dead = max(self.dead - 1, self.max_hearts)
+            self.heart_rects.remove(rect)
+            self.sfx['pickup'].play()
+            for x in range(20):
+              self.polysparks.append(pg.ui.PolySpark([self.player.rect().centerx - self.scroll[0] ,self.player.rect().centery - self.scroll[1]], math.radians(random.randint(0,360)), random.randint(2,3), (255,61,137), 2, 2))
 
       self.fireflies.recursive_call(time, self.display, self.scroll, self.dt)
       self.leaf.recursive_call(time, self.display, self.scroll, self.gust.wind(), dt=self.dt)
@@ -498,6 +526,38 @@ class Game():
           self.load_level(self.world[self.curr_world])
       else:
         self.typing = False
+      
+      if self.game_over:
+        if not self.game_over_typing:
+          pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
+          self.game_over_typing = self.game_over_typer.update(time, self.ui_display, enter_loc=(550,100))
+          self.ui_display.blit(self.citizen_talk.img(), (10,10))
+          self.citizen_talk.update()
+      
+      if self.cage_bro_health <= 0:
+        self.sparks = []
+        self.end_scene_time += 1
+        if self.end_scene_time < 350:
+          pygame.draw.rect(self.display, (0,0,0), (0,0,self.display.get_width(), self.display.get_height()))
+        else:
+          self.game_over = True
+          self.display.blit(self.assets['bro'], (self.cage_brother_rects[0].x - self.scroll[0], self.cage_brother_rects[0].y + 22 - self.scroll[1]))
+        #game over screen. 
+        colors = [(255,255,255), (255,0,0)]
+        if self.end_scene_time < 250:
+          for x in range(10):
+            angle = random.random() * math.pi * 2
+            speed = random.random() * 5
+            self.sparks.append(pg.ui.Spark(self.player.rect().center, angle, 2 + random.random() * speed, colors[random.randint(0,1)]))
+        elif self.end_scene_time < 300:
+          self.display.blit(self.assets['flash'].img(), (-350,-270))
+          self.assets['flash'].update()
+      
+      for spark in self.sparks.copy():
+        kill = spark.update()
+        spark.render(self.display, self.scroll, self.dt)
+        if kill:
+          self.sparks.remove(spark)
 
       self.hud.events(self.settings.controls_keyboard)
       
