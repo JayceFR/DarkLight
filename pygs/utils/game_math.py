@@ -17,3 +17,8 @@ def magnitude(vector):
 
 def normalise(vector):
   return [vector[0] / magnitude(vector), vector[1] / magnitude(vector)]
+
+def convert_to_min_sec(time):
+  min = time // 60
+  sec = time % 60
+  return min, sec

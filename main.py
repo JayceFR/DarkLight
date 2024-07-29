@@ -89,7 +89,8 @@ class Game():
       'fireball': pg.Animation(pg.load_imgs('ui/fireball', color_key=(0,0,0), scale=0.1), img_dur=3),
       'heart': pg.load_img('ui/heart.png', scale=1),
       'flash' : pg.Animation(pg.load_imgs('ui/flash', scale=1), img_dur=5, loop=False),
-      'bro': pg.load_img('entities/bro/bro.png', scale=1)
+      'bro': pg.load_img('entities/bro/bro.png', scale=1),
+      'story' : pg.load_img('ui/story.png', scale=3)
     }
 
     self.sfx = {
@@ -129,6 +130,8 @@ class Game():
 
     self.max_hearts = -10
 
+    self.story_cooldown = 300
+
     self.scroll = []
 
     self.tutorial_text = ["The city of darklight is a mysterious and dangerous place", "But it does look quite beautiful", "Try making it home before its too late", "Too late for what", "For Overheat", "Overheat?", "No one has ever survived the overheat.", "What happens when one is overheated", "Legends has it that one sees the true nature of darklight"]
@@ -147,6 +150,9 @@ class Game():
     #   ["map", "h"]
     # ]
 
+    self.player.update_who("j")
+
+    self.start_time = 0
     self.load_level(
       self.world[self.curr_world]
     )
@@ -162,8 +168,6 @@ class Game():
       self.tilemap.load('data/save/maps/home/map.json')
 
     # self.player.who = level[1]
-
-    self.player.update_who("j")
 
     self.flow_shoot_cooldown = random.randint(800,1200)
 
@@ -308,6 +312,13 @@ class Game():
 
     self.game_over = False
 
+    self.updated_record_timer = False
+    self.tmin = 0
+    self.tsec = 0
+    self.img = None
+
+    self.ghost_creation_last_update = 0
+    self.ghost_creation_cooldown = 20000
     # self.fireball = pg.entities.Fireball(self, (295,154))
 
   @pg.pygs
@@ -355,6 +366,27 @@ class Game():
       self.ui_display.fill((0,0,0,0))
       self.display.fill((2,2,2))
 
+
+      if self.player.who == "j":
+        if self.curr_world > 2 and self.curr_level == 2:
+          self.player.update_who("h")
+        elif self.curr_world > 0  and self.tmin > 0:
+          self.player.update_who("h")
+      else:
+        if time - self.ghost_creation_last_update > self.ghost_creation_cooldown:
+          self.ghost.append(pg.entities.Ghost(self, [self.player.rect().x + random.random() * self.display.get_width(), self.player.rect().y + random.random() * self.display.get_height()], (self.assets['ghost'].get_width(), self.assets['ghost'].get_height()), self.enemy ))
+          self.ghost_creation_last_update = time
+      
+      if self.cage_bro_health <= 0:
+        self.ghost = []
+
+
+      if not self.updated_record_timer:
+        self.tmin, self.tsec = pg.convert_to_min_sec((time - self.start_time) // 1000)
+        self.img = self.font.render(str(self.tmin) + " : " + str(self.tsec), True, (255,255,255))
+      if self.curr_world != 0:
+        self.ui_display.blit(self.img, (20,20))
+
       if self.transition < 0:
         self.transition += 1
 
@@ -370,7 +402,7 @@ class Game():
             self.movement[1] = True
       
       #heart
-      if self.dead <= 0:
+      if self.dead <= 0 and not self.world_completed:
         for x in range(abs(self.dead) + 1):
           self.ui_display.blit(self.assets['heart'], (600 - x * 20, 20))
 
@@ -509,6 +541,17 @@ class Game():
         if not self.done_typing:
           self.typing = True
           pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
+          if self.curr_world != 0:
+            if not self.updated_record_timer:
+              if self.settings.record_time[str(self.curr_world)] == 0:
+                self.settings.record_time[str(self.curr_world)] = (time - self.start_time) // 1000
+              elif self.settings.record_time[str(self.curr_world)] - ((time - self.start_time) // 1000) > 0:
+                self.settings.record_time[str(self.curr_world)] = (time - self.start_time) // 1000
+              self.updated_record_timer = True
+            rtmin, rtsec = pg.convert_to_min_sec(self.settings.record_time[str(self.curr_world)])
+            rimg = self.font.render(str(rtmin) + " : " + str(rtsec), True, (255,255,255))
+            self.ui_display.blit(rimg, (350,20))
+            self.ui_display.blit(self.img, (300,20))
           self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(550,100))
           if self.typer.banana_turn % 2 != 0:
             self.ui_display.blit(self.player_talk.img(), (10,10))
@@ -523,6 +566,8 @@ class Game():
           #check for game over
           self.curr_world += 1
           self.curr_level = 1
+          #update the timer
+          self.start_time = pygame.time.get_ticks()
           self.world_completed = False
           self.load_level(self.world[self.curr_world])
       else:
@@ -559,6 +604,12 @@ class Game():
         spark.render(self.display, self.scroll, self.dt)
         if kill:
           self.sparks.remove(spark)
+
+      if self.curr_world == 0:
+        if self.story_cooldown:
+          pygame.draw.rect(self.ui_display, (0,0,0), (0,0,self.display.get_width(), self.display.get_height()))
+          self.ui_display.blit(self.assets['story'], (7,25))
+          self.story_cooldown = max(0, self.story_cooldown - 1)
 
       self.hud.events(self.settings.controls_keyboard)
       

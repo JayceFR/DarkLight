@@ -7,6 +7,7 @@ class Settings():
     self.path = "data\save\settings.json"
     self.controls_keyboard = {}
     self.display = {}
+    self.record_time = {}
     self.font = font
     self.game = game
     self.curr_hover_pos = -1
@@ -41,6 +42,11 @@ class Settings():
       "display" : {
         "res" : [960, 540]
       },
+      "record_time":{
+        "1": 0,
+        "2" : 0,
+        "3" : 0,
+      }
     }
 
   def convert_to_set(self, dict):
@@ -65,10 +71,12 @@ class Settings():
       file.close()
       self.controls_keyboard = self.convert_to_set(settings["controls_keyboard"])
       self.display = settings["display"]
+      self.record_time = settings["record_time"]
     except:
       conf = self.default_conf()
       self.controls_keyboard = self.convert_to_set(conf["controls_keyboard"])
       self.display = conf["display"] 
+      self.record_time = conf["record_time"]
     x = 0
     for key in self.controls_keyboard.keys():
       self.key_objs.append([key, pygame.rect.Rect(10, 50 + x * 25, 150, 39), pygame.rect.Rect(11, 50 + x * 25 + 3, 146, 35)])
@@ -168,5 +176,5 @@ class Settings():
     
   def save(self):
     file = open(self.path, "w")
-    json.dump({"controls_keyboard" : self.convert_to_dict(self.controls_keyboard), "display" : self.display}, file)
+    json.dump({"controls_keyboard" : self.convert_to_dict(self.controls_keyboard), "display" : self.display, "record_time": self.record_time}, file)
     file.close()
