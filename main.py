@@ -238,8 +238,6 @@ class Game():
       elif spawner['variant'] == 11:
         self.cage_brother_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 32, 45))
     
-    self.water_manager = pg.ui.WaterManager()
-    self.water_manager.load(self.water_pos, self)
     for fire_pos in self.tilemap.extract([('decor', 4),], True):
       self.fire_pos.append(fire_pos)
 
@@ -493,8 +491,6 @@ class Game():
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)
       
-
-      self.water_manager.update(self)
 
 
       if self.settings_window:
