@@ -122,13 +122,18 @@ class Game():
 
     self.tilemap = pg.TileMap(self, tile_size=16)
     self.curr_level = 1 
-    self.curr_world = 1
+    self.curr_world = 0
+
+    self.max_hearts = -10
+
+    self.scroll = []
 
     self.tutorial_text = ["The city of darklight is a mysterious and dangerous place", "But it does look quite beautiful", "Try making it home before its too late", "Too late for what", "For Overheat", "Overheat?", "No one has ever survived the overheat.", "What happens when one is overheated", "Legends has it that one sees the true nature of darklight"]
     level_one_text = ["Oh you have survived the day, I thought you wouldn't", "...", "What brings you here", "Hmm.. hiking", "No one visits the ruins of darklight for hiking, stop lying", "Few days ago my brother visited this place on his geography trip", "Oh yeah I did see some school students, I did warn them ", "He never returned, so I am looking for him ", "I am really sorry, but I believe he is captured by the red hoodies", "The red what?", "They are a ruthless tribe who flourish in this ruined city.", "Oh!!", "They are the ones who cursed this beautiful place with overheat", "Oh it must be them, they captured my little brother", "Enough talk lets take some rest, don't want to get overheated"]
     level_two_text = ["Oh hi there", "I found my brother's cap I believe I am in the right path", "Wait were you just overheated", "Yeah I guess so ", "Only the descendants of the king of shadows can survive in the overheated state", "My great-grandfather was no king of shadows", "Wait is it true that you saw a ghost", "Yeah it almost got me", "The ghosts are the spirits of the lost souls who perished overheated", "Is there a way to restore this place ", "Legend has it that the only true descendent of the king of the shadows can restore this place.", "Oh", "Lest's take some rest now"]
     self.world = {
       #  [max_level, list_of_texts]
+      0: [1, self.tutorial_text],
       1: [2, level_one_text],
       2: [1, level_two_text]
     }
@@ -178,8 +183,6 @@ class Game():
     self.flower = pg.entities.Flowers(flower_objs, self.assets, self)
     self.gust = pg.entities.Gust(self)
 
-    self.scroll = []
-
     self.citizens = []
     self.water_pos = []
     self.fire_pos = []
@@ -191,10 +194,11 @@ class Game():
     self.fireballs = []
     self.dimension_loc = []
     self.end_rects = []
+    self.heart_rects = []
 
     self.sparks = []
 
-    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8), ('spawners', 10)]):
+    for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8), ('spawners', 9), ('spawners', 10)]):
       if spawner['variant'] == 0:
         self.player.pos = spawner['pos']
       elif spawner['variant'] == 1:
@@ -213,6 +217,8 @@ class Game():
         self.dimension_loc.append(spawner['pos'])
       elif spawner['variant'] == 8:
         self.fireballs.append(pg.entities.Fireball(self, spawner['pos'], [1024 * 0.1, 1024 * 0.1 ] ,move_speed=5, cooldown=10))
+      elif spawner['variant'] == 9:
+        self.heart_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 16,16))
       elif spawner['variant'] == 10:
         self.end_rects.append(pygame.rect.Rect(spawner['pos'][0], spawner['pos'][1], 16, 16))
     
@@ -436,29 +442,6 @@ class Game():
 
       for particle in self.fire_particles:
         particle.draw_flame(self.display, self.scroll)
-
-      
-      if self.world_completed and self.player.rect().colliderect(self.home_rect):
-        if not self.done_typing:
-          self.typing = True
-          pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
-          self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(550,100))
-          if self.typer.banana_turn % 2 != 0:
-            self.ui_display.blit(self.player_talk.img(), (10,10))
-            self.player_talk.update()
-          else:
-            self.ui_display.blit(self.citizen_talk.img(), (10,10))
-            self.citizen_talk.update()
-        else:
-          self.typing = False
-          #done typing so update the world state 
-          #check for game over
-          self.curr_world += 1
-          self.curr_level = 1
-          self.world_completed = False
-          self.load_level(self.world[self.curr_world])
-      else:
-        self.typing = False
       
 
       self.water_manager.update(self)
@@ -480,9 +463,41 @@ class Game():
         spark.render(self.display, self.scroll, self.dt)
         if kill:
           self.sparks.remove(spark)
+      
+      for rect in self.heart_rects.copy():
+        self.display.blit(self.assets['heart'], (rect[0] - self.scroll[0], rect[1] - self.scroll[1]))
+        if self.dead <= 0 and rect.colliderect(self.player.rect()):
+          self.dead = max(self.dead - 1, self.max_hearts)
+          self.heart_rects.remove(rect)
+          self.sfx['pickup'].play()
+          for x in range(20):
+            self.polysparks.append(pg.ui.PolySpark([self.player.rect().centerx - self.scroll[0] ,self.player.rect().centery - self.scroll[1]], math.radians(random.randint(0,360)), random.randint(2,3), (255,61,137), 2, 2))
 
       self.fireflies.recursive_call(time, self.display, self.scroll, self.dt)
       self.leaf.recursive_call(time, self.display, self.scroll, self.gust.wind(), dt=self.dt)
+
+      if self.world_completed and self.player.rect().colliderect(self.home_rect):
+        if not self.done_typing:
+          self.typing = True
+          pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
+          self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(550,100))
+          if self.typer.banana_turn % 2 != 0:
+            self.ui_display.blit(self.player_talk.img(), (10,10))
+            self.player_talk.update()
+          else:
+            self.ui_display.blit(self.citizen_talk.img(), (10,10))
+            self.citizen_talk.update()
+        else:
+          self.typing = False
+          self.done_typing = False
+          #done typing so update the world state 
+          #check for game over
+          self.curr_world += 1
+          self.curr_level = 1
+          self.world_completed = False
+          self.load_level(self.world[self.curr_world])
+      else:
+        self.typing = False
 
       self.hud.events(self.settings.controls_keyboard)
       

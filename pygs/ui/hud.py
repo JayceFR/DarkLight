@@ -126,7 +126,7 @@ class Hud():
                         self.obj.settings_window = not self.obj.settings_window
                 if event.key == pygame.K_o:
                     if self.obj.__class__.__name__ == "Editor":
-                        self.obj.tilemap.save('map.json')
+                        self.obj.tilemap.save(self.obj.path)
                 if event.key == pygame.K_t:
                     if self.obj.__class__.__name__ == "Editor":
                         self.obj.tilemap.autotile()

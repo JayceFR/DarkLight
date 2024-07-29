@@ -114,6 +114,7 @@ class EnemyManager():
           #check for collision with enemy
           if self.game.player.hit and self.game.player.get_hit_rect().colliderect(enemy.rect()):
             enemy.alive = False
+            self.game.dead = max(self.game.dead - 1, self.game.max_hearts)
             self.game.screenshake = max(20, self.game.screenshake)
             for x in range(30):
               angle = random.random() * math.pi * 2
