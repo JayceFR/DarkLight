@@ -124,9 +124,13 @@ class Game():
     self.curr_level = 1 
     self.curr_world = 1
 
+    self.tutorial_text = ["The city of darklight is a mysterious and dangerous place", "But it does look quite beautiful", "Try making it home before its too late", "Too late for what", "For Overheat", "Overheat?", "No one has ever survived the overheat.", "What happens when one is overheated", "Legends has it that one sees the true nature of darklight"]
+    level_one_text = ["Oh you have survived the day, I thought you wouldn't", "...", "What brings you here", "Hmm.. hiking", "No one visits the ruins of darklight for hiking, stop lying", "Few days ago my brother visited this place on his geography trip", "Oh yeah I did see some school students, I did warn them ", "He never returned, so I am looking for him ", "I am really sorry, but I believe he is captured by the red hoodies", "The red what?", "They are a ruthless tribe who flourish in this ruined city.", "Oh!!", "They are the ones who cursed this beautiful place with overheat", "Oh it must be them, they captured my little brother", "Enough talk lets take some rest, don't want to get overheated"]
+    level_two_text = ["Oh hi there", "I found my brother's cap I believe I am in the right path", "Wait were you just overheated", "Yeah I guess so ", "Only the descendants of the king of shadows can survive in the overheated state", "My great-grandfather was no king of shadows", "Wait is it true that you saw a ghost", "Yeah it almost got me", "The ghosts are the spirits of the lost souls who perished overheated", "Is there a way to restore this place ", "Legend has it that the only true descendent of the king of the shadows can restore this place.", "Oh", "Lest's take some rest now"]
     self.world = {
       #  [max_level, list_of_texts]
-      1: [2, ["bla bla bla", "hola"]]
+      1: [2, level_one_text],
+      2: [1, level_two_text]
     }
 
     # self.levels = [
@@ -145,7 +149,7 @@ class Game():
     if level:
       self.tilemap.load('data/save/maps/world' + str(self.curr_world) + "/" + str(self.curr_level) + '.json')
     else:
-      self.tilemap.load('./map.json')
+      self.tilemap.load('data/save/maps/home/map.json')
 
     # self.player.who = level[1]
 
@@ -154,7 +158,7 @@ class Game():
     self.flow_shoot_cooldown = random.randint(800,1200)
 
     self.font = pygame.font.Font('./data/font/munro.ttf', 20)
-    self.typer = pg.TypeWriter(self.font, (255,255,255), 150,70, 600, 20, None)
+    self.typer = pg.TypeWriter(self.font, (255,255,255),150,70, 900, 20, None)
     self.player_talk = self.assets['player/speak'].copy()
     self.citizen_talk = self.assets['citizen/speak'].copy()
     self.typer.write(text)
@@ -274,7 +278,10 @@ class Game():
     self.polysparks = []
     self.in_flow = False
 
-    self.world_completed = False #Needs to be false
+    if level is None:
+      self.world_completed = True #Needs to be false
+    else:
+      self.world_completed = False
     self.typing = False
 
     # self.fireball = pg.entities.Fireball(self, (295,154))
@@ -302,8 +309,11 @@ class Game():
       for end_rect in self.end_rects:
         if end_rect.colliderect(self.player.rect()):
           self.transition += 1
+      
+      print(self.transition)
 
       if self.transition > 30:
+        print("In the transition")
         self.curr_level += 1
         self.dead = -10
         if self.curr_level > self.world[self.curr_world][0]:
@@ -432,7 +442,7 @@ class Game():
         if not self.done_typing:
           self.typing = True
           pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
-          self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(350,300))
+          self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(550,100))
           if self.typer.banana_turn % 2 != 0:
             self.ui_display.blit(self.player_talk.img(), (10,10))
             self.player_talk.update()

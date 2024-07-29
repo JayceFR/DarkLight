@@ -41,8 +41,8 @@ class Editor():
     self.tilemap = TileMap(self, tile_size=16)
 
     try:
-      # self.tilemap.load("./data/save/maps/world1/1.json")
-      self.tilemap.load("./map.json")
+      self.tilemap.load("./data/save/maps/world1/2.json")
+      # self.tilemap.load("./map.json")
     except FileNotFoundError:
       pass
     
