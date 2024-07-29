@@ -135,7 +135,7 @@ class Game():
       #  [max_level, list_of_texts]
       0: [1, self.tutorial_text],
       1: [2, level_one_text],
-      2: [1, level_two_text]
+      2: [2, level_two_text]
     }
 
     # self.levels = [
