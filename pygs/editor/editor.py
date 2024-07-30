@@ -40,7 +40,7 @@ class Editor():
 
     self.tilemap = TileMap(self, tile_size=16)
 
-    self.path = "./data/save/maps/world2/2.json"
+    self.path = "./data/save/maps/world0/1.json"
 
     try:
       # self.tilemap.load("./data/save/maps/world1/2.json")

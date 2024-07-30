@@ -19,6 +19,7 @@ class Ghost():
     self.flip = False
     self.health = 100
     self.rect = pygame.rect.Rect(pos[0], pos[1], size[0], size[1])
+    self.animation = self.game.assets['ghost_ani'].copy()
     self.vec_list = [(1,0), (-1,0), (0,1), (0,-1), (0.5, 0.5), (-0.5, 0.5), (0.5, -0.5), (-0.5, -0.5)]
   
   def update(self, player_pos = (0,0), dt=1):
@@ -69,6 +70,8 @@ class Ghost():
       self.game.sparks.append(Spark(self.rect.center, 0, 5 + random.random()))
       self.game.sparks.append(Spark(self.rect.center, math.pi, 5 + random.random()))
       self.alive = False
+    
+    self.animation.update()
   
   def render(self, surf, offset=(0,0)):
-    surf.blit(pygame.transform.flip(self.game.assets[self.type], self.flip, False), (self.pos[0] - offset[0], self.pos[1] - offset[1]))
+    surf.blit(pygame.transform.flip(self.animation.img(), self.flip, False), (self.pos[0] - offset[0], self.pos[1] - offset[1]))

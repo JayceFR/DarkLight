@@ -33,6 +33,7 @@ class Game():
     self.ui_display = pygame.Surface((640, 360), pygame.SRCALPHA)
     self.movement = [False, False]
 
+
     self.assets = {
       'player' : pg.load_img('entities/player/random.png', scale=1),
       'grass' : pg.load_imgs('tiles/grass', scale=1),
@@ -83,6 +84,7 @@ class Game():
       'citizen/speak' : pg.Animation(pg.load_imgs('entities/citizen/speak', scale=5), img_dur=16),
       'cage' : pg.Animation(pg.load_imgs('entities/bro/cage', scale=1), img_dur=1, loop=False), 
       'ghost' : pg.load_img('ui/ghost.png'),
+      'ghost_ani' : pg.Animation(pg.load_imgs('entities/ghost', scale=1), img_dur=10, loop=True), 
       'eyeball' : pg.load_img('ui/eyeball.png', scale=5),
       'potion' : pg.load_img('ui/potion.png', scale=5),
       'skull' : pg.load_img('ui/skull.png', scale=5),
@@ -90,8 +92,13 @@ class Game():
       'heart': pg.load_img('ui/heart.png', scale=1),
       'flash' : pg.Animation(pg.load_imgs('ui/flash', scale=1), img_dur=5, loop=False),
       'bro': pg.load_img('entities/bro/bro.png', scale=1),
-      'story' : pg.load_img('ui/story.png', scale=3)
+      'story' : pg.load_img('ui/story.png', scale=3),
+      'flow_ani' : pg.Animation(pg.load_imgs('entities/flow', scale=1), img_dur=4, loop=True), 
+      'bare_tree' : pg.load_img('ui/bare_tree.png', scale=1),
+      'tree' : pg.load_img('ui/tree.png', scale=1, color_key=(255,255,255))
     }
+
+    pygame.display.set_icon(self.assets['ghost'])
 
     self.sfx = {
       'ambience': pygame.mixer.Sound('./data/music/ambience.wav'),
@@ -102,7 +109,8 @@ class Game():
       'dash': pygame.mixer.Sound('./data/music/dash.wav'),
       'attack' : pygame.mixer.Sound('./data/music/attack.wav'),
       'run' : pygame.mixer.Sound('./data/music/run.wav'),
-      'death': pygame.mixer.Sound('./data/music/death.wav')
+      'death': pygame.mixer.Sound('./data/music/death.wav'),
+      'hyde': pygame.mixer.Sound('./data/music/hyde.wav')
     }
 
     self.sfx['ambience'].set_volume(0.05)
@@ -209,8 +217,13 @@ class Game():
     self.end_rects = []
     self.heart_rects = []
     self.cage_brother_rects = []
+    self.tree_locs = []
 
     self.sparks = []
+
+    for decor in self.tilemap.extract([('decor', 3)]):
+      if decor['variant'] == 3:
+        self.tree_locs.append(decor['pos'])
 
     for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1), ('spawners', 2), ('spawners', 3), ('spawners', 4), ('spawners', 5), ('spawners', 6), ('spawners', 7) ,('spawners', 8), ('spawners', 9), ('spawners', 10), ('spawners', 11)]):
       if spawner['variant'] == 0:
@@ -298,7 +311,9 @@ class Game():
     self.polysparks = []
     self.in_flow = False
 
+    self.ghost_spawn = True
     if level is None:
+      self.ghost_spawn = False
       self.world_completed = True #Needs to be false
     else:
       self.world_completed = False
@@ -367,11 +382,13 @@ class Game():
 
       if self.player.who == "j":
         if self.curr_world > 2 and self.curr_level == 2:
+          self.sfx['hyde'].play()
           self.player.update_who("h")
         elif self.curr_world > 0  and self.tmin > 0:
           self.player.update_who("h")
+          self.sfx['hyde'].play()
       else:
-        if time - self.ghost_creation_last_update > self.ghost_creation_cooldown:
+        if self.ghost_spawn and time - self.ghost_creation_last_update > self.ghost_creation_cooldown:
           self.ghost.append(pg.entities.Ghost(self, [self.player.rect().x + random.random() * self.display.get_width(), self.player.rect().y + random.random() * self.display.get_height()], (self.assets['ghost'].get_width(), self.assets['ghost'].get_height()), self.enemy ))
           self.ghost_creation_last_update = time
       
@@ -414,6 +431,13 @@ class Game():
       self.scroll[0] = int(self.scroll[0])
       self.scroll[1] = int(self.scroll[1])
 
+      if self.player.who == "j":
+        for tree_loc in self.tree_locs:
+          self.display.blit(self.assets['tree'], (tree_loc[0] - self.scroll[0], tree_loc[1] - self.scroll[1]))
+      else:
+        for tree_loc in self.tree_locs:
+          self.display.blit(self.assets['bare_tree'], (tree_loc[0] - self.scroll[0], tree_loc[1] - self.scroll[1]))
+      
       self.tilemap.render(self.display, self.scroll)
 
       self.flower.update(self.player.rect(), self.display, self.scroll, time, self.gust.wind())
@@ -453,6 +477,7 @@ class Game():
 
       self.in_flow = False
       for flow in self.flows.copy():
+        flow.update()
         flow.render(self.display, self.scroll)
         if flow.rect.colliderect(self.player.rect()):
           self.in_flow = True
@@ -561,6 +586,7 @@ class Game():
           #done typing so update the world state 
           #check for game over
           self.curr_world += 1
+          self.player.update_who("j")
           self.curr_level = 1
           #update the timer
           self.start_time = pygame.time.get_ticks()
