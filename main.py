@@ -95,7 +95,9 @@ class Game():
       'story' : pg.load_img('ui/story.png', scale=3),
       'flow_ani' : pg.Animation(pg.load_imgs('entities/flow', scale=1), img_dur=4, loop=True), 
       'bare_tree' : pg.load_img('ui/bare_tree.png', scale=1),
-      'tree' : pg.load_img('ui/tree.png', scale=1, color_key=(255,255,255))
+      'tree' : pg.load_img('ui/tree.png', scale=1, color_key=(255,255,255)),
+      'clock': pg.load_img('ui/clock.png', scale=1),
+      'crown' : pg.load_img('ui/crown.png', scale=1)
     }
 
     pygame.display.set_icon(self.assets['ghost'])
@@ -165,11 +167,24 @@ class Game():
       self.world[self.curr_world]
     )
 
+    self.speed_game_time = 0
+    self.runs = {
+      "1": 0,
+      "2": 0,
+      "3": 0,
+    }
+
+    self.game_over_font = pygame.font.Font('./data/font/munro.ttf', 50)
+    self.game_over_img = self.game_over_font.render("GAME OVER", True, (255,255,255))
+
+    self.credit_font = pygame.font.Font('./data/font/jayce1.ttf', 20)
+    self.credit_img = self.credit_font.render("MADE BY JAYCE AND JANISH", True, (255,255,255))
+
     # self.load_level(level=None, text=self.world[self.curr_world][1])
   
   #level -> [name, j/h, list_of_text]
   def load_level(self, level=None, text=[]):
-    print(level)
+    # print(level)
     if level:
       self.tilemap.load('data/save/maps/world' + str(self.curr_world) + "/" + str(self.curr_level) + '.json')
     else:
@@ -179,7 +194,7 @@ class Game():
 
     self.flow_shoot_cooldown = random.randint(800,1200)
 
-    self.font = pygame.font.Font('./data/font/munro.ttf', 20)
+    self.font = pygame.font.Font('./data/font/jayce1.ttf', 20)
     self.typer = pg.TypeWriter(self.font, (255,255,255),150,70, 900, 20, None)
     self.player_talk = self.assets['player/speak'].copy()
     self.citizen_talk = self.assets['citizen/speak'].copy()
@@ -381,7 +396,7 @@ class Game():
 
 
       if self.player.who == "j":
-        if self.curr_world > 2 and self.curr_level == 2:
+        if self.curr_world >= 2 and self.curr_level == 2:
           self.sfx['hyde'].play()
           self.player.update_who("h")
         elif self.curr_world > 0  and self.tmin > 0:
@@ -564,6 +579,7 @@ class Game():
           pygame.draw.rect(self.ui_display, (0,0,0), pygame.rect.Rect(0,0, 640, 180))
           if self.curr_world != 0:
             if not self.updated_record_timer:
+              self.runs[str(self.curr_world)] = (time - self.start_time) // 1000
               if self.settings.record_time[str(self.curr_world)] == 0:
                 self.settings.record_time[str(self.curr_world)] = (time - self.start_time) // 1000
               elif self.settings.record_time[str(self.curr_world)] - ((time - self.start_time) // 1000) > 0:
@@ -571,8 +587,10 @@ class Game():
               self.updated_record_timer = True
             rtmin, rtsec = pg.convert_to_min_sec(self.settings.record_time[str(self.curr_world)])
             rimg = self.font.render(str(rtmin) + " : " + str(rtsec), True, (255,255,255))
-            self.ui_display.blit(rimg, (350,20))
-            self.ui_display.blit(self.img, (300,20))
+            self.ui_display.blit(rimg, (370,20))
+            self.ui_display.blit(self.img, (280,20))
+            self.ui_display.blit(self.assets['clock'], (260,10))
+            self.ui_display.blit(self.assets['crown'], (420,20))
           self.done_typing = self.typer.update(time, self.ui_display, enter_loc=(550,100))
           if self.typer.banana_turn % 2 != 0:
             self.ui_display.blit(self.player_talk.img(), (10,10))
@@ -588,6 +606,10 @@ class Game():
           self.curr_world += 1
           self.player.update_who("j")
           self.curr_level = 1
+          #Update the overall speed game timer
+          if self.curr_world != 1: #Ignore world 0 
+            self.speed_game_time += ((time - self.start_time) // 1000)
+          print("speed game time", self.speed_game_time)
           #update the timer
           self.start_time = pygame.time.get_ticks()
           self.world_completed = False
@@ -601,10 +623,53 @@ class Game():
           self.game_over_typing = self.game_over_typer.update(time, self.ui_display, enter_loc=(550,100))
           self.ui_display.blit(self.citizen_talk.img(), (10,10))
           self.citizen_talk.update()
+        else:
+          self.darkness = 0.8
+          x= 0 
+          for world, run_time in self.runs.items():
+            img = self.font.render("WORLD : " + world, True, (255,255,255))
+            rmin, rsec = pg.convert_to_min_sec(self.settings.record_time[world])
+            rimg = self.font.render(str(rmin) + " : " + str(rsec), True, (255,255,255))
+            tmin, tsec = pg.convert_to_min_sec(run_time)
+            timg = self.font.render(str(tmin) + " : "+ str(tsec), True, (255,255,255))
+            self.ui_display.blit(self.credit_img, (400, 50))
+            self.ui_display.blit(self.game_over_img, (100,20))
+            self.ui_display.blit(img, (50 + x * 200, 160 ))
+            self.ui_display.blit(self.assets['clock'], (20 + x * 200, 190))
+            self.ui_display.blit(self.assets['crown'], (160 + x * 200, 200))
+            self.ui_display.blit(timg, (40 + x * 200, 200))
+            self.ui_display.blit(rimg, (100 + x * 200, 200))
+            x += 1
+          img = self.font.render("FULL GAME : " , True, (255,255,255))
+          rmin, rsec = pg.convert_to_min_sec(self.settings.record_time["game"])
+          rimg = self.font.render(str(rmin) + " : " + str(rsec), True, (255,255,255))
+          tmin, tsec = pg.convert_to_min_sec(self.speed_game_time)
+          timg = self.font.render(str(tmin) + " : "+ str(tsec), True, (255,255,255))
+          self.ui_display.blit(img, (150, 300))
+          self.ui_display.blit(self.assets['clock'], (280, 290))
+          self.ui_display.blit(self.assets['crown'], (460,300))
+          self.ui_display.blit(timg, (310, 300))
+          self.ui_display.blit(rimg, (400,300))
       
       if self.cage_bro_health <= 0:
         self.sparks = []
         self.end_scene_time += 1
+        if self.end_scene_time == 1:
+          if not self.updated_record_timer:
+            self.runs[str(self.curr_world)] = (time - self.start_time) // 1000
+            print(self.runs)
+            if self.settings.record_time[str(self.curr_world)] == 0:
+              self.settings.record_time[str(self.curr_world)] = (time - self.start_time) // 1000
+            elif self.settings.record_time[str(self.curr_world)] - ((time - self.start_time) // 1000) > 0:
+              self.settings.record_time[str(self.curr_world)] = (time - self.start_time) // 1000
+            self.updated_record_timer = True
+          self.speed_game_time += ((time - self.start_time) // 1000)
+          #update the overall game time 
+          if self.settings.record_time["game"] == 0:
+            self.settings.record_time["game"] = self.speed_game_time
+          elif self.settings.record_time["game"] - self.speed_game_time > 0:
+            self.settings.record_time["game"] = self.speed_game_time
+          print("speed gmae time", self.speed_game_time)
         if self.end_scene_time < 350:
           pygame.draw.rect(self.display, (0,0,0), (0,0,self.display.get_width(), self.display.get_height()))
         else:

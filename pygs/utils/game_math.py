@@ -21,4 +21,6 @@ def normalise(vector):
 def convert_to_min_sec(time):
   min = time // 60
   sec = time % 60
+  if len(str(sec)) == 1:
+    sec = "0" + str(sec)
   return min, sec
